@@ -10,10 +10,10 @@ This application provides real-time monitoring of your API usage without requiri
 
 - **Real-Time Usage Display**: Live token usage updates every 30 seconds
 - **System Tray Integration**: Color-coded status indicator (green/yellow/red)
-- **Multi-Account Support**: Track multiple API accounts simultaneously
 - **Historical Tracking**: View usage trends and patterns over time
 - **Usage Alerts**: Get notified before hitting rate limits
-- **Cross-Platform**: Works on Windows, macOS, and Linux
+- **Desktop Notifications**: Cross-platform native notifications
+- **Settings Management**: Configurable refresh intervals and alert thresholds
 
 ## 📁 Project Structure
 
@@ -24,70 +24,105 @@ Usage Tracker/
 │   └── IMPLEMENTATION_GUIDE.md    # Step-by-step build guide
 ├── prd/                       # Product Requirements
 │   └── PRD.md                     # Full product specification
-├── src/                       # Source code (to be implemented)
+├── src/                       # Source code
 │   ├── main/                    # Electron main process
-│   ├── preload/                 # Preload scripts
-│   └── renderer/                # React UI
+│   │   ├── index.ts            # Main entry point
+│   │   ├── api-service.ts      # ZAI API integration
+│   │   ├── ipc-handlers.ts     # IPC communication
+│   │   ├── store-service.ts    # Local storage service
+│   │   └── tray-manager.ts     # System tray integration
+│   ├── preload/                # Preload scripts
+│   │   ├── index.ts            # Context bridge setup
+│   │   └── dts.ts              # TypeScript definitions
+│   └── renderer/               # React UI
+│       ├── components/         # UI components
+│       │   ├── UsageDisplay.tsx
+│       │   ├── SettingsPanel.tsx
+│       │   └── HistoryChart.tsx
+│       ├── stores/             # Zustand stores
+│       │   └── useUsageStore.ts
+│       ├── hooks/              # Custom hooks
+│       │   └── useUsageData.ts
+│       ├── lib/                # Utilities
+│       │   └── utils.ts
+│       └── types/              # TypeScript types
+│           └── index.ts
 └── package.json               # Dependencies
 ```
 
-## 🚀 Quick Start
+## 🛠️ Development Status
 
-### Prerequisites
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Documentation | ✅ Complete | API docs, implementation guide, PRD |
+| Project Setup | ✅ Complete | Electron + React + TypeScript configured |
+| Type Definitions | ✅ Complete | Full TypeScript types for API and app |
+| API Integration | ✅ Complete | ZAI usage endpoint with error handling |
+| State Management | ✅ Complete | Zustand store with persistence |
+| UI Components | ✅ Complete | UsageDisplay, SettingsPanel, HistoryChart |
+| System Tray | ✅ Complete | Tray icon with status color coding |
+| IPC Communication | ✅ Complete | Main-renderer communication bridge |
+| Local Storage | ✅ Complete | Settings and history persistence |
+| Tailwind CSS | ✅ Complete | @tailwindcss/postcss configured |
+| **Runtime Fix Needed** | 🔴 Blocked | Electron module injection issue (see below) |
 
-- Node.js 18+
-- npm or yarn
+## 🔧 Known Issue: Electron Module Injection
 
-### Installation (Coming Soon)
+**Status**: The application builds successfully but fails at runtime.
+
+**Problem**: When the app runs, `require('electron')` returns a stub string (path to electron.exe) instead of the Electron API object.
+
+**Error**:
+```
+TypeError: Cannot read properties of undefined (reading 'requestSingleInstanceLock')
+```
+
+**Investigation**:
+- Verified with simple test file - `require('electron')` returns `string` not `object`
+- File encoding verified correct (hexdump shows 0x3F for `?`)
+- Happens with Electron 7.1.14, 28.3.0, and 33.0.0
+- Affects both dev and production builds
+
+**Current Configuration**:
+- electron-vite 2.3.0
+- vite 5.4.11
+- Electron 33.0.0
+- Build target: node18
+- Output: .cjs files
+
+**Being Investigated**: Parallel agent is actively debugging this issue.
+
+## 📖 Documentation
+
+### [ZAI API Documentation](docs/ZAI_API_DOCUMENTATION.md)
+Complete reference for the ZAI usage tracking API
+
+### [Implementation Guide](docs/IMPLEMENTATION_GUIDE.md)
+Original step-by-step build guide
+
+### [Product Requirements](prd/PRD.md)
+Full product specification
+
+## 🚀 Setup & Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/usage-tracker.git
-cd usage-tracker
-
 # Install dependencies
 npm install
 
-# Run in development mode
+# Development mode
 npm run dev
 
 # Build for production
 npm run build
 
-# Package for distribution
+# Preview production build
+npm run preview
+
+# Package for Windows
 npm run package
 ```
 
-## 📖 Documentation
-
-### [ZAI API Documentation](docs/ZAI_API_DOCUMENTATION.md)
-Complete reference for the ZAI usage tracking API, including:
-- API endpoints
-- Authentication methods
-- Request/response formats
-- Error handling
-- Rate limits and caching
-
-### [Implementation Guide](docs/IMPLEMENTATION_GUIDE.md)
-Step-by-step guide for building the app:
-- Tech stack recommendations
-- Project structure
-- Core modules
-- Code examples
-- Testing strategy
-- Building & packaging
-
-### [Product Requirements](prd/PRD.md)
-Full product specification including:
-- Problem statement
-- Solution overview
-- Key features
-- Technical requirements
-- Success metrics
-
 ## 🔍 Background: How ZAI Usage Tracking Works
-
-This project was extracted from the **Auto-Claude Marketing Hub** codebase analysis. The original implementation includes:
 
 ### API Endpoint
 ```
@@ -112,73 +147,10 @@ Authorization: Bearer {token}
 }
 ```
 
-### Key Components from Original Codebase
-
-1. **Usage Monitor Service** (`apps/frontend/src/main/claude-profile/usage-monitor.ts`)
-   - Fetches usage every 30 seconds
-   - Handles ZAI-specific response format
-   - Manages cooldown and error handling
-
-2. **Usage Indicator Component** (`apps/frontend/src/renderer/components/UsageIndicator.tsx`)
-   - Real-time usage display with progress bars
-   - Profile switching interface
-   - Color-coded status indicators
-
-3. **Rate Limit Store** (`apps/frontend/src/main/stores/rate-limit-store.ts`)
-   - Zustand store for usage state
-   - IPC communication between main and renderer processes
-
-## 🎨 UI Preview (Planned)
-
-```
-System Tray (Windows)
-┌─────────┐
-│  🔴 95% │  ← Color-coded by usage level
-└─────────┘
-
-Main Window
-┌─────────────────────────────────────────────┐
-│ Usage Tracker                      [_] [□] [×] │
-├─────────────────────────────────────────────┤
-│ ZAI Account - Primary                           │
-│                                                  │
-│ Session Usage (5 Hours)    Weekly (Monthly)    │
-│ ┌─────────────────────┐   ┌──────────────────┐ │
-│ │ ████████████░░░ 72% │   │ ██████░░░░ 60%  │ │
-│ └─────────────────────┘   └──────────────────┘ │
-│                                                  │
-│ 360K / 500K tokens                             │
-│ Reset in: 2h 15m                                │
-└─────────────────────────────────────────────┘
-```
-
-## 🛠️ Development Status
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Documentation | ✅ Complete | API docs, implementation guide, PRD |
-| Project Setup | ⏳ Pending | Initialize Electron + React |
-| API Integration | ⏳ Pending | ZAI usage endpoint |
-| UI Components | ⏳ Pending | Usage display, settings |
-| System Tray | ⏳ Pending | Tray icon, tooltip, menu |
-| Testing | ⏳ Pending | Unit tests, E2E tests |
-| Packaging | ⏳ Pending | electron-builder config |
-
-## 🤝 Contributing
-
-This project is currently in the planning/exploration phase. Contributions are welcome once development begins.
-
 ## 📄 License
 
-TBD - License to be determined before first release.
+MIT
 
 ## 🙏 Acknowledgments
 
-This project is based on usage tracking functionality discovered in the **Auto-Claude Marketing Hub** codebase:
-- Original `usage-monitor.ts` by Auto-Claude team
-- ZAI API integration patterns
-- Electron + React best practices
-
----
-
-**Note**: This is a research and planning phase. The application is not yet built or functional.
+Based on usage tracking functionality from the **Auto-Claude Marketing Hub** codebase.
