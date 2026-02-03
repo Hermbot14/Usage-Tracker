@@ -1,0 +1,38 @@
+{
+  "name": "usage-tracker",
+  "version": "1.0.0",
+  "description": "ZAI Usage Tracker Desktop App - Monitor your API usage in real-time",
+  "main": "out/main/index.cjs",
+  "author": "Hermie Cornejo",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "package": "electron-builder --win",
+    "package:all": "electron-builder -mwl"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "date-fns": "^4.1.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@types/node": "^25.0.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.2",
+    "autoprefixer": "^10.4.22",
+    "electron": "^33.0.0",
+    "electron-builder": "^26.4.0",
+    "electron-vite": "^2.3.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.11"
+  }
+}
