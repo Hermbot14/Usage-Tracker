@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { UsageData, UsageHistoryEntry, Settings } from '@types/index'
+import type { UsageData, UsageHistoryEntry, Settings } from '@/types'
 
 interface UsageStore {
   // State

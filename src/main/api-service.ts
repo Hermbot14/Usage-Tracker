@@ -1,4 +1,4 @@
-import type { ZAIUsageResponse, UsageData } from '@types/index'
+import type { ZAIUsageResponse, UsageData } from '../renderer/types'
 
 const ALLOWED_DOMAINS = new Set(['api.z.ai', 'z.ai', 'api.anthropic.com'])
 

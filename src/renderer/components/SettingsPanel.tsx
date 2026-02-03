@@ -1,13 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUsageStore } from '@stores/useUsageStore'
 import { useUsageData } from '@hooks/useUsageData'
 
-export function SettingsPanel() {
+interface SettingsPanelProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const { settings, updateSettings } = useUsageStore()
   const { fetchUsage } = useUsageData()
-  const [isOpen, setIsOpen] = useState(false)
   const [localSettings, setLocalSettings] = useState({ ...settings })
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+
+  // Reset local settings when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setLocalSettings({ ...settings })
+    }
+  }, [isOpen, settings])
 
   const handleChange = (field: keyof typeof localSettings, value: any) => {
     setLocalSettings((prev) => ({ ...prev, [field]: value }))
@@ -36,20 +47,7 @@ export function SettingsPanel() {
     return key.slice(0, 8) + '...' + key.slice(-4)
   }
 
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed top-4 right-4 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-        title="Settings"
-      >
-        <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </button>
-    )
-  }
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -58,7 +56,7 @@ export function SettingsPanel() {
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Settings</h2>
           <button
-            onClick={() => setIsOpen(false)}
+            onClick={onClose}
             className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
           >
             <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -186,7 +184,7 @@ export function SettingsPanel() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               Cancel

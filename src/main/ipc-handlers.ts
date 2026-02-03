@@ -1,7 +1,7 @@
 import { ipcMain, app, BrowserWindow } from 'electron'
 import { ApiService } from './api-service'
 import { StoreService } from './store-service'
-import type { UsageData } from '@types/index'
+import type { UsageData } from '../renderer/types'
 
 let trayManager: any = null
 let usageRefreshInterval: NodeJS.Timeout | null = null

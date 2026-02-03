@@ -1,6 +1,6 @@
 import { Tray, Menu, nativeImage, BrowserWindow, Notification } from 'electron'
 import { join } from 'node:path'
-import type { UsageData } from '@types/index'
+import type { UsageData } from '../renderer/types'
 
 export class TrayManager {
   private tray: Tray | null = null
@@ -21,7 +21,7 @@ export class TrayManager {
     this.updateMenu()
   }
 
-  private createStatusIcon(status: 'healthy' | 'warning' | 'critical'): nativeImage {
+  private createStatusIcon(status: 'healthy' | 'warning' | 'critical'): ReturnType<typeof nativeImage.createFromBuffer> {
     // Create a simple colored square as icon
     const size = 16
     const canvas = {
