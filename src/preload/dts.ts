@@ -25,6 +25,9 @@ declare global {
       updateTray: (usage: any) => Promise<{ success: boolean }>
       minimizeToTray: () => Promise<{ success: boolean }>
       getAppVersion: () => Promise<string>
+      setOverlayMode: (enabled: boolean) => Promise<{ success: boolean }>
+      setClickThrough: (enabled: boolean) => Promise<{ success: boolean }>
+      setOverlayPosition: (position: string) => Promise<{ success: boolean }>
       onRefreshUsage: (callback: () => void) => () => void
     }
   }

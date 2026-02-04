@@ -50,6 +50,19 @@ export interface Account {
   isActive: boolean
 }
 
+// Overlay Mode Types
+export type OverlayPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+
+export interface OverlaySettings {
+  enabled: boolean
+  position: OverlayPosition
+  opacity: number // 50-100
+  compact: boolean
+  clickThrough: boolean
+  showPercentage: boolean
+  showProgressBar: boolean
+}
+
 export interface Settings {
   apiKey: string
   baseUrl: string
@@ -58,6 +71,7 @@ export interface Settings {
   alertThresholds: number[] // [80, 90, 100]
   soundAlertEnabled: boolean
   retentionDays: number
+  overlayMode: OverlaySettings
 }
 
 export interface UsageSnapshot extends UsageData {

@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react'
 import { UsageDisplay } from '@components/UsageDisplay'
 import { SettingsPanel } from '@components/SettingsPanel'
 import { ThemeSelector } from '@components/ui/ThemeSelector'
+import { UsageOverlay } from '@components/UsageOverlay'
+import { useUsageStore } from '@stores/useUsageStore'
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const { settings, updateSettings } = useUsageStore()
 
   // Check system preference for dark mode and load saved theme
   useEffect(() => {
@@ -49,6 +52,19 @@ function App() {
     } else {
       document.documentElement.classList.remove('dark')
     }
+  }
+
+  // Handler to expand from overlay mode to full UI
+  const handleExpandFromOverlay = () => {
+    updateSettings({ overlayMode: { ...settings.overlayMode, enabled: false } })
+  }
+
+  // Check if overlay mode is enabled
+  const isOverlayMode = settings.overlayMode.enabled
+
+  // Conditional rendering: overlay mode vs full UI
+  if (isOverlayMode) {
+    return <UsageOverlay onExpand={handleExpandFromOverlay} />
   }
 
   return (

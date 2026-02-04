@@ -35,6 +35,14 @@ const api = {
   getAppVersion: () =>
     ipcRenderer.invoke('get-app-version'),
 
+  // Overlay mode operations
+  setOverlayMode: (enabled: boolean) =>
+    ipcRenderer.invoke('set-overlay-mode', enabled),
+  setClickThrough: (enabled: boolean) =>
+    ipcRenderer.invoke('set-click-through', enabled),
+  setOverlayPosition: (position: string) =>
+    ipcRenderer.invoke('set-overlay-position', position),
+
   // Event listeners
   onRefreshUsage: (callback: () => void) => {
     ipcRenderer.on('refresh-usage', callback)

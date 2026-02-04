@@ -13,7 +13,7 @@ export default defineConfig((env: ConfigEnv): UserConfig => {
           output: {
             format: 'cjs',
             entryFileNames: '[name].cjs',
-            exports: 'named',
+            exports: 'auto',
             preserveModules: false
           }
         }

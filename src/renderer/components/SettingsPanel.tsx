@@ -26,6 +26,46 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     setLocalSettings((prev) => ({ ...prev, [field]: value }))
   }
 
+  // Handle overlay mode toggle - requires window recreation via IPC
+  const handleOverlayModeToggle = async (enabled: boolean) => {
+    // Update local state first
+    handleChange('overlayMode', { ...localSettings.overlayMode, enabled })
+
+    // Call IPC handler to recreate window with overlay mode
+    const result = await window.api.setOverlayMode(enabled)
+    if (result.success) {
+      // Save settings after window recreation
+      await updateSettings({ overlayMode: { ...localSettings.overlayMode, enabled } })
+    }
+  }
+
+  // Handle click-through toggle - requires IPC call
+  const handleClickThroughToggle = async (enabled: boolean) => {
+    // Update local state
+    handleChange('overlayMode', { ...localSettings.overlayMode, clickThrough: enabled })
+
+    // Call IPC handler to set click-through
+    const result = await window.api.setClickThrough(enabled)
+    if (result.success) {
+      // Save settings
+      await updateSettings({ overlayMode: { ...localSettings.overlayMode, clickThrough: enabled } })
+    }
+  }
+
+  // Handle overlay position change - requires IPC call
+  const handleOverlayPositionChange = async (position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right') => {
+    // Update local state
+    handleChange('overlayMode', { ...localSettings.overlayMode, position })
+
+    // Only call IPC if overlay mode is currently enabled
+    if (localSettings.overlayMode.enabled) {
+      await window.api.setOverlayPosition(position)
+    }
+
+    // Save settings
+    await updateSettings({ overlayMode: { ...localSettings.overlayMode, position } })
+  }
+
   const handleSave = async () => {
     setSaveStatus('saving')
     try {
@@ -364,6 +404,212 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   color: 'var(--color-text-primary)'
                 }}>
                   Enable sound alerts
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Overlay Mode */}
+          <div>
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--color-text-secondary)',
+              margin: '0 0 12px'
+            }}>
+              Overlay Mode
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Enable/Disable Toggle */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: localSettings.overlayMode.enabled ? 'var(--color-background-secondary)' : 'transparent',
+                transition: 'all 0.2s'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={localSettings.overlayMode.enabled}
+                  onChange={(e) => handleOverlayModeToggle(e.target.checked)}
+                  aria-label="Enable overlay mode"
+                  style={{ margin: 0 }}
+                />
+                <span style={{
+                  fontSize: '14px',
+                  color: 'var(--color-text-primary)'
+                }}>
+                  Enable overlay mode
+                </span>
+              </label>
+
+              {/* Position Selector */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '8px'
+                }}>
+                  Position
+                </label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '8px',
+                  width: 'fit-content'
+                }}>
+                  {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map((position) => (
+                    <button
+                      key={position}
+                      type="button"
+                      onClick={() => handleOverlayPositionChange(position as 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right')}
+                      aria-label={`Position overlay at ${position}`}
+                      aria-pressed={localSettings.overlayMode.position === position}
+                      style={{
+                        padding: '10px 16px',
+                        borderRadius: 'var(--radius-md)',
+                        border: localSettings.overlayMode.position === position ? '2px solid var(--color-accent-primary)' : '1px solid var(--color-border-default)',
+                        backgroundColor: localSettings.overlayMode.position === position ? 'var(--color-accent-primary-light)' : 'var(--color-surface-elevated)',
+                        color: 'var(--color-text-primary)',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        textTransform: 'capitalize'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (localSettings.overlayMode.position !== position) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-background-secondary)'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (localSettings.overlayMode.position !== position) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-surface-elevated)'
+                        }
+                      }}
+                    >
+                      {position.replace('-', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Opacity Slider */}
+              <div>
+                <label htmlFor="overlayOpacity" style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '6px'
+                }}>
+                  Opacity: {localSettings.overlayMode.opacity}%
+                </label>
+                <input
+                  id="overlayOpacity"
+                  type="range"
+                  min="50"
+                  max="100"
+                  step="5"
+                  value={localSettings.overlayMode.opacity}
+                  onChange={(e) => handleChange('overlayMode', { ...localSettings.overlayMode, opacity: parseInt(e.target.value) })}
+                  style={{
+                    width: '100%',
+                    accentColor: 'var(--color-accent-primary)'
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>50%</span>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>100%</span>
+                </div>
+              </div>
+
+              {/* Click-through Checkbox */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                cursor: 'pointer',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: localSettings.overlayMode.clickThrough ? 'var(--color-background-secondary)' : 'transparent',
+                transition: 'all 0.2s'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={localSettings.overlayMode.clickThrough}
+                  onChange={(e) => handleClickThroughToggle(e.target.checked)}
+                  aria-label="Enable click-through mode"
+                  style={{ margin: 0, marginTop: '2px' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{
+                    fontSize: '14px',
+                    color: 'var(--color-text-primary)'
+                  }}>
+                    Click-through (hover to interact)
+                  </span>
+                  <span style={{
+                    fontSize: '12px',
+                    color: 'var(--color-text-tertiary)'
+                  }}>
+                    Overlay ignores clicks when enabled, allowing interaction with underlying apps. Hover over overlay to interact with it.
+                  </span>
+                </div>
+              </label>
+
+              {/* Show Percentage Checkbox */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: localSettings.overlayMode.showPercentage ? 'var(--color-background-secondary)' : 'transparent',
+                transition: 'all 0.2s'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={localSettings.overlayMode.showPercentage}
+                  onChange={(e) => handleChange('overlayMode', { ...localSettings.overlayMode, showPercentage: e.target.checked })}
+                  aria-label="Show percentage in overlay"
+                  style={{ margin: 0 }}
+                />
+                <span style={{
+                  fontSize: '14px',
+                  color: 'var(--color-text-primary)'
+                }}>
+                  Show percentage
+                </span>
+              </label>
+
+              {/* Show Progress Bar Checkbox */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: localSettings.overlayMode.showProgressBar ? 'var(--color-background-secondary)' : 'transparent',
+                transition: 'all 0.2s'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={localSettings.overlayMode.showProgressBar}
+                  onChange={(e) => handleChange('overlayMode', { ...localSettings.overlayMode, showProgressBar: e.target.checked })}
+                  aria-label="Show progress bar in overlay"
+                  style={{ margin: 0 }}
+                />
+                <span style={{
+                  fontSize: '14px',
+                  color: 'var(--color-text-primary)'
+                }}>
+                  Show progress bar
                 </span>
               </label>
             </div>

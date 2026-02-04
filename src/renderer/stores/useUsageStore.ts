@@ -24,11 +24,20 @@ interface UsageStore {
 const defaultSettings: Settings = {
   apiKey: '',
   baseUrl: 'https://api.z.ai/api/anthropic',
-  refreshInterval: 30, // 30 seconds
+  refreshInterval: 5, // 5 seconds
   notificationsEnabled: true,
   alertThresholds: [80, 90, 100],
   soundAlertEnabled: false,
   retentionDays: 90,
+  overlayMode: {
+    enabled: false,
+    position: 'top-right',
+    opacity: 95,
+    compact: true,
+    clickThrough: false,
+    showPercentage: true,
+    showProgressBar: true,
+  },
 }
 
 export const useUsageStore = create<UsageStore>((set, get) => ({

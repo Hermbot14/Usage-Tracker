@@ -723,3 +723,245 @@
     scrollbar-width: none;
   }
 }
+
+/* ============================================
+   OVERLAY MODE STYLES
+   Rainmeter-style floating widget
+   ============================================ */
+
+/* Main overlay container */
+.usage-overlay {
+  /* Dark translucent background */
+  background-color: rgba(15, 15, 20, 0.92);
+
+  /* Backdrop blur effect with cross-browser support */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  /* Box shadow for depth */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* Rounded corners */
+  border-radius: 16px;
+
+  /* Compact size */
+  width: 200px;
+  padding: 12px;
+
+  /* Flex column layout with gap */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  /* Text color */
+  color: #E6E6E6;
+
+  /* Prevent text selection during drag */
+  user-select: none;
+  -webkit-user-select: none;
+
+  /* Ensure overlay stays on top */
+  position: relative;
+  z-index: 9999;
+}
+
+/* Draggable header */
+.overlay-header {
+  /* Enable dragging on header */
+  -webkit-app-region: drag;
+  app-region: drag;
+
+  /* Flex row layout */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  /* Compact padding */
+  padding: 4px;
+
+  /* Prevent text selection */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Interactive elements in header (buttons, etc.) */
+.overlay-header button,
+.overlay-header a,
+.overlay-header .interactive {
+  /* Disable drag on interactive elements */
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+
+  /* Background for visibility */
+  background-color: rgba(255, 255, 255, 0.1);
+
+  /* Border radius */
+  border-radius: 4px;
+
+  /* Padding */
+  padding: 4px 8px;
+
+  /* Cursor indicator */
+  cursor: pointer;
+
+  /* Remove default button styles */
+  border: none;
+  color: inherit;
+  font: inherit;
+
+  /* Transition for hover effects */
+  transition: background-color 0.2s ease;
+}
+
+/* Hover state for interactive elements */
+.overlay-header button:hover,
+.overlay-header a:hover,
+.overlay-header .interactive:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Progress circle center container */
+.overlay-progress {
+  /* Center alignment */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Vertical padding */
+  padding: 8px 0;
+}
+
+/* Percentage display */
+.overlay-percent {
+  /* Large font size */
+  font-size: 32px;
+
+  /* Bold weight */
+  font-weight: 700;
+
+  /* Compact line height */
+  line-height: 1;
+
+  /* Text center alignment */
+  text-align: center;
+
+  /* Color gradient effect */
+  background: linear-gradient(135deg, #E6E6E6 0%, #A5A66A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Mini progress bar container */
+.overlay-bar {
+  /* Full width */
+  width: 100%;
+
+  /* Compact height */
+  height: 6px;
+
+  /* Background for track */
+  background-color: rgba(255, 255, 255, 0.1);
+
+  /* Rounded corners */
+  border-radius: 3px;
+
+  /* Overflow for fill animation */
+  overflow: hidden;
+}
+
+/* Progress bar fill */
+.overlay-bar-fill {
+  /* Full height */
+  height: 100%;
+
+  /* Gradient background */
+  background: linear-gradient(
+    90deg,
+    #4EBE96 0%,
+    #A5A66A 50%,
+    #D84F68 100%
+  );
+
+  /* Smooth width transition */
+  transition: width 0.3s ease;
+
+  /* Border radius matching container */
+  border-radius: 3px;
+}
+
+/* Alert message */
+.overlay-alert {
+  /* Small font size */
+  font-size: 11px;
+
+  /* Error color */
+  color: #ef4444;
+
+  /* Semi-bold weight */
+  font-weight: 600;
+
+  /* Text center alignment */
+  text-align: center;
+
+  /* Compact spacing */
+  margin: 0;
+  padding: 4px 0;
+
+  /* Word break for long messages */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Overlay stats row */
+.overlay-stats {
+  /* Flex layout for side-by-side stats */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  /* Gap between stat items */
+  gap: 8px;
+
+  /* Padding */
+  padding: 4px 0;
+}
+
+/* Individual stat item */
+.overlay-stat {
+  /* Flex column for label + value */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Gap between label and value */
+  gap: 2px;
+}
+
+/* Stat label */
+.overlay-stat-label {
+  /* Small font size */
+  font-size: 10px;
+
+  /* Secondary text color */
+  color: rgba(230, 230, 230, 0.7);
+
+  /* Text transform for compact look */
+  text-transform: uppercase;
+
+  /* Letter spacing */
+  letter-spacing: 0.05em;
+}
+
+/* Stat value */
+.overlay-stat-value {
+  /* Medium font size */
+  font-size: 14px;
+
+  /* Semi-bold weight */
+  font-weight: 600;
+
+  /* Primary text color */
+  color: #E6E6E6;
+}

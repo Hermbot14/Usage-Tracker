@@ -298,6 +298,10 @@ export class TrayManager {
     }
   }
 
+  updateMainWindow(window: BrowserWindow): void {
+    this.mainWindow = window
+  }
+
   destroy(): void {
     if (this.tray) {
       this.tray.destroy()
