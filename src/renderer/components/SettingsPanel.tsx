@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useUsageStore } from '@stores/useUsageStore'
 import { useUsageData } from '@hooks/useUsageData'
+import { Button } from './ui/Button'
+import { Badge } from './ui/Badge'
 
 interface SettingsPanelProps {
   isOpen: boolean
@@ -47,32 +49,103 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     return key.slice(0, 8) + '...' + key.slice(-4)
   }
 
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose()
+    }
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'var(--color-surface-overlay)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 50,
+        padding: '16px'
+      }}
+      onClick={onClose}
+      aria-hidden="true"
+    >
+      <div
+        style={{
+          backgroundColor: 'var(--color-surface-card)',
+          borderRadius: 'var(--radius-xl)',
+          boxShadow: 'var(--shadow-xl)',
+          width: '100%',
+          maxWidth: '480px',
+          maxHeight: '90vh',
+          overflow: 'auto'
+        }}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Settings</h2>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '24px',
+          borderBottom: '1px solid var(--color-border-default)'
+        }}>
+          <h2 id="settings-title" style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: 'var(--color-text-primary)',
+            margin: 0
+          }}>
+            Settings
+          </h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            aria-label="Close settings"
+            style={{
+              padding: '8px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+              color: 'var(--color-text-secondary)',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-background-secondary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* API Configuration */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">API Configuration</h3>
-            <div className="space-y-4">
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--color-text-secondary)',
+              margin: '0 0 12px'
+            }}>
+              API Configuration
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label htmlFor="apiKey" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <label htmlFor="apiKey" style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '6px'
+                }}>
                   API Key
                 </label>
                 <input
@@ -81,11 +154,37 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   value={localSettings.apiKey}
                   onChange={(e) => handleChange('apiKey', e.target.value)}
                   placeholder={settings.apiKey ? maskApiKey(settings.apiKey) : 'Enter your API key'}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  aria-describedby="apiKey-description"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border-default)',
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    color: 'var(--color-text-primary)',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--color-accent-primary)'
+                    e.target.style.boxShadow = 'var(--shadow-focus)'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--color-border-default)'
+                    e.target.style.boxShadow = 'none'
+                  }}
                 />
+                <span id="apiKey-description" style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', display: 'block', marginTop: '4px' }}>
+                  Your ZAI API key for authentication
+                </span>
               </div>
               <div>
-                <label htmlFor="baseUrl" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <label htmlFor="baseUrl" style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '6px'
+                }}>
                   Base URL
                 </label>
                 <input
@@ -93,17 +192,50 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   type="text"
                   value={localSettings.baseUrl}
                   onChange={(e) => handleChange('baseUrl', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  aria-describedby="baseUrl-description"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border-default)',
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    color: 'var(--color-text-primary)',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--color-accent-primary)'
+                    e.target.style.boxShadow = 'var(--shadow-focus)'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--color-border-default)'
+                    e.target.style.boxShadow = 'none'
+                  }}
                 />
+                <span id="baseUrl-description" style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', display: 'block', marginTop: '4px' }}>
+                  API endpoint URL
+                </span>
               </div>
             </div>
           </div>
 
           {/* Refresh Settings */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Refresh Settings</h3>
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--color-text-secondary)',
+              margin: '0 0 12px'
+            }}>
+              Refresh Settings
+            </h3>
             <div>
-              <label htmlFor="refreshInterval" className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+              <label htmlFor="refreshInterval" style={{
+                display: 'block',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                marginBottom: '6px'
+              }}>
                 Refresh Interval: {localSettings.refreshInterval} seconds
               </label>
               <input
@@ -114,21 +246,44 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 step="10"
                 value={localSettings.refreshInterval}
                 onChange={(e) => handleChange('refreshInterval', parseInt(e.target.value))}
-                className="w-full"
+                style={{
+                  width: '100%',
+                  accentColor: 'var(--color-accent-primary)'
+                }}
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>10s</span>
-                <span>5 min</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>10s</span>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>5 min</span>
               </div>
             </div>
           </div>
 
           {/* Alert Thresholds */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Alert Thresholds</h3>
-            <div className="flex gap-2">
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--color-text-secondary)',
+              margin: '0 0 12px'
+            }}>
+              Alert Thresholds
+            </h3>
+            <div style={{ display: 'flex', gap: '12px' }}>
               {[80, 90, 100].map((threshold) => (
-                <label key={threshold} className="flex items-center gap-2 cursor-pointer">
+                <label
+                  key={threshold}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    padding: '8px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    border: localSettings.alertThresholds.includes(threshold) ? '1px solid var(--color-accent-primary)' : '1px solid var(--color-border-default)',
+                    backgroundColor: localSettings.alertThresholds.includes(threshold) ? 'var(--color-accent-primary-light)' : 'transparent',
+                    transition: 'all 0.2s'
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={localSettings.alertThresholds.includes(threshold)}
@@ -138,9 +293,15 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                         : localSettings.alertThresholds.filter((t) => t !== threshold)
                       handleChange('alertThresholds', newThresholds)
                     }}
-                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                    aria-label={`Alert at ${threshold}% usage`}
+                    style={{ margin: 0 }}
                   />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">{threshold}%</span>
+                  <span style={{
+                    fontSize: '14px',
+                    color: 'var(--color-text-primary)'
+                  }}>
+                    {threshold}%
+                  </span>
                 </label>
               ))}
             </div>
@@ -148,51 +309,126 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
           {/* Notifications */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Notifications</h3>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 cursor-pointer">
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--color-text-secondary)',
+              margin: '0 0 12px'
+            }}>
+              Notifications
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: localSettings.notificationsEnabled ? 'var(--color-background-secondary)' : 'transparent',
+                transition: 'all 0.2s'
+              }}>
                 <input
                   type="checkbox"
                   checked={localSettings.notificationsEnabled}
                   onChange={(e) => handleChange('notificationsEnabled', e.target.checked)}
-                  className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                  aria-label="Enable desktop notifications"
+                  style={{ margin: 0 }}
                 />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Enable desktop notifications</span>
+                <span style={{
+                  fontSize: '14px',
+                  color: 'var(--color-text-primary)'
+                }}>
+                  Enable desktop notifications
+                </span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: localSettings.soundAlertEnabled ? 'var(--color-background-secondary)' : 'transparent',
+                transition: 'all 0.2s'
+              }}>
                 <input
                   type="checkbox"
                   checked={localSettings.soundAlertEnabled}
                   onChange={(e) => handleChange('soundAlertEnabled', e.target.checked)}
-                  className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                  aria-label="Enable sound alerts"
+                  style={{ margin: 0 }}
                 />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Enable sound alerts</span>
+                <span style={{
+                  fontSize: '14px',
+                  color: 'var(--color-text-primary)'
+                }}>
+                  Enable sound alerts
+                </span>
               </label>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '24px',
+          borderTop: '1px solid var(--color-border-default)'
+        }}>
           <div>
             {saveStatus === 'saved' && (
-              <span className="text-sm text-green-600">Settings saved!</span>
+              <Badge variant="success">Settings saved!</Badge>
             )}
             {saveStatus === 'error' && (
-              <span className="text-sm text-red-600">Failed to save</span>
+              <Badge variant="error">Failed to save</Badge>
             )}
           </div>
-          <div className="flex gap-3">
+          <div style={{ display: 'flex', gap: '12px' }}>
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              style={{
+                padding: '10px 16px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border-default)',
+                backgroundColor: 'transparent',
+                color: 'var(--color-text-primary)',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-background-secondary)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saveStatus === 'saving'}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50"
+              aria-busy={saveStatus === 'saving'}
+              style={{
+                padding: '10px 16px',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                backgroundColor: 'var(--color-accent-primary)',
+                color: 'var(--color-text-inverse)',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: saveStatus === 'saving' ? 'not-allowed' : 'pointer',
+                opacity: saveStatus === 'saving' ? 0.5 : 1,
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                if (saveStatus !== 'saving') {
+                  e.currentTarget.style.backgroundColor = 'var(--color-accent-primary-hover)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-accent-primary)'
+              }}
             >
               {saveStatus === 'saving' ? 'Saving...' : 'Save'}
             </button>

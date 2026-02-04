@@ -18,6 +18,9 @@ export class TrayManager {
     const icon = this.createStatusIcon('healthy')
     this.tray = new Tray(icon)
 
+    // Set initial tooltip so it doesn't show "Electron"
+    this.tray.setToolTip('Usage Tracker\nLoading...')
+
     this.updateMenu()
   }
 
@@ -68,6 +71,8 @@ export class TrayManager {
 
     this.updateMenu()
     this.updateTooltip()
+    this.updateTaskbarOverlay()
+    this.updateWindowTitle()
   }
 
   private updateMenu(): void {
@@ -131,6 +136,138 @@ export class TrayManager {
 
     if (hours > 0) return `${hours}h ${minutes}m`
     return `${minutes}m`
+  }
+
+  private updateTaskbarOverlay(): void {
+    if (!this.mainWindow || !this.currentUsage) {
+      this.mainWindow?.setOverlayIcon(null, '')
+      return
+    }
+
+    const percent = this.currentUsage.sessionPercent
+    const overlayIcon = this.createPercentageOverlay(percent)
+    const timeUntilReset = this.formatTimeUntil(new Date(this.currentUsage.sessionResetTime))
+
+    // Set overlay icon with tooltip
+    this.mainWindow.setOverlayIcon(overlayIcon, `${percent}% usage · Resets in ${timeUntilReset}`)
+  }
+
+  // Simple 3x5 bitmap font for digits 0-9 (using 3-bit patterns)
+  // Each row is a 3-bit number representing pixels: 1=pixel, 0=empty
+  private readonly digitBitmaps: Record<string, number[]> = {
+    '0': [3, 5, 5, 5, 3],  // ###  #.#  #.#  #.#  ###
+    '1': [1, 3, 1, 1, 5],  //  #   ###   #    #   #.#
+    '2': [3, 5, 2, 4, 7],  // ###  #.#   #    #   ####
+    '3': [7, 2, 6, 5, 3],  // ####   #   ###  #.#  ###
+    '4': [5, 5, 7, 1, 1],  // #.#  #.#  ####   #    #
+    '5': [7, 4, 6, 5, 3],  // ####   #   ###  #.#  ###
+    '6': [3, 4, 6, 5, 3],  // ###   #   ###  #.#  ###
+    '7': [7, 5, 1, 2, 4],  // ####  #.#   #    #    #
+    '8': [3, 5, 3, 5, 3],  // ###  #.#  ###  #.#  ###
+    '9': [3, 5, 7, 1, 3],  // ###  #.#  ####   #   ###
+    '%': [0, 0, 0, 0, 0],  // Skip % for now, too small
+  }
+
+  private createPercentageOverlay(percent: number): nativeImage {
+    const size = 32
+    const canvas = {
+      data: Buffer.alloc(size * size * 4),
+      width: size,
+      height: size,
+    }
+
+    // Determine color based on usage level
+    let color = { r: 34, g: 197, b: 94 } // green
+    if (percent >= 80) color = { r: 239, g: 68, b: 68 } // red
+    else if (percent >= 50) color = { r: 234, g: 179, b: 8 } // yellow
+
+    // Clear buffer (transparent background)
+    for (let i = 0; i < size * size * 4; i++) {
+      canvas.data[i] = 0
+    }
+
+    // For simplicity, just show the percent as a colored badge with circle
+    // Draw a circle background
+    const centerX = Math.floor(size / 2)
+    const centerY = Math.floor(size / 2)
+    const radius = Math.floor(size / 2) - 2
+
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const dx = x - centerX
+        const dy = y - centerY
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance <= radius) {
+          const i = (y * size + x) * 4
+          canvas.data[i] = color.r
+          canvas.data[i + 1] = color.g
+          canvas.data[i + 2] = color.b
+          canvas.data[i + 3] = 255 // alpha
+        }
+      }
+    }
+
+    // Draw text as white pixels in the center
+    const text = percent.toString()
+    const digitWidth = 3
+    const digitHeight = 5
+    const scale = 2
+    const spacing = 1
+    const totalWidth = text.length * (digitWidth * scale + spacing * scale)
+
+    let startX = Math.floor((size - totalWidth) / 2)
+    const startY = Math.floor((size - digitHeight * scale) / 2)
+
+    for (let charIndex = 0; charIndex < text.length; charIndex++) {
+      const char = text[charIndex]
+      const bitmap = this.digitBitmaps[char]
+
+      if (!bitmap) continue
+
+      // Draw each digit with white pixels
+      for (let row = 0; row < digitHeight; row++) {
+        const rowData = bitmap[row]
+        for (let col = 0; col < digitWidth; col++) {
+          // Check if this pixel is set (bit 2-col for 3-bit patterns)
+          if (rowData & (1 << (2 - col))) {
+            // Draw scaled pixels in white
+            for (let sy = 0; sy < scale; sy++) {
+              for (let sx = 0; sx < scale; sx++) {
+                const x = startX + col * scale + sx
+                const y = startY + row * scale + sy
+
+                if (x >= 0 && x < size && y >= 0 && y < size) {
+                  const i = (y * size + x) * 4
+                  canvas.data[i] = 255     // R - white
+                  canvas.data[i + 1] = 255 // G - white
+                  canvas.data[i + 2] = 255 // B - white
+                  canvas.data[i + 3] = 255 // alpha
+                }
+              }
+            }
+          }
+        }
+      }
+
+      startX += digitWidth * scale + spacing * scale
+    }
+
+    return nativeImage.createFromBuffer(canvas.data, {
+      width: canvas.width,
+      height: canvas.height,
+    })
+  }
+
+  private updateWindowTitle(): void {
+    if (!this.mainWindow || !this.currentUsage) {
+      this.mainWindow?.setTitle('Usage Tracker')
+      return
+    }
+
+    const usage = this.currentUsage
+    const timeUntilReset = this.formatTimeUntil(new Date(usage.sessionResetTime))
+    this.mainWindow.setTitle(`Usage Tracker · ${usage.sessionPercent}% · Resets in ${timeUntilReset}`)
   }
 
   showNotification(title: string, body: string): void {

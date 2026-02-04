@@ -23,7 +23,7 @@ const mainFile = join(process.cwd(), 'out', 'main', 'index.cjs')
 const preloadFile = join(process.cwd(), 'out', 'preload', 'index.cjs')
 
 // Patch main process with electron main exports
-await patchFile(mainFile, ['app', 'BrowserWindow', 'shell', 'ipcMain', 'nativeTheme', 'Tray', 'Menu', 'MenuItem'])
+await patchFile(mainFile, ['app', 'BrowserWindow', 'shell', 'ipcMain', 'nativeTheme', 'Tray', 'Menu', 'MenuItem', 'nativeImage'])
 console.log('✓ Main process electron imports patched')
 
 // Patch preload with electron renderer exports

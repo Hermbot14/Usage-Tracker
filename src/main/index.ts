@@ -21,7 +21,7 @@ function createWindow(): void {
     backgroundColor: '#f9fafb',
     title: 'Usage Tracker',
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.cjs'),
       sandbox: false,
       contextIsolation: true,
       nodeIntegration: false,
@@ -68,6 +68,8 @@ if (!gotTheLock) {
   })
 
   app.whenReady().then(() => {
+    // Set app name for taskbar display (fixes "electron" showing in taskbar)
+    app.setName('Usage Tracker')
     app.setAppUserModelId('com.usage-tracker.app')
 
     // Initialize store service

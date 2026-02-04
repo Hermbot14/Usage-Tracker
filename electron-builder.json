@@ -12,11 +12,11 @@
   "win": {
     "target": [
       {
-        "target": "nsis",
+        "target": "portable",
         "arch": ["x64"]
       },
       {
-        "target": "portable",
+        "target": "nsis",
         "arch": ["x64"]
       }
     ],
