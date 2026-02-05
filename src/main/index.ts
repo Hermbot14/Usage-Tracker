@@ -37,10 +37,12 @@ function createWindow(overlayMode: boolean = false): void {
   // Get stored settings for overlay configuration
   const overlayPosition = storeService?.get('overlayPosition', 'top-right') || 'top-right'
   const savedBounds = storeService?.get('windowBounds')
+  const customOverlayBounds = storeService?.get('customOverlayBounds')
 
   if (overlayMode) {
     // Overlay window configuration
-    const bounds = calculateOverlayBounds(overlayPosition)
+    // Use custom position if user dragged it, otherwise use preset position
+    const bounds = customOverlayBounds || calculateOverlayBounds(overlayPosition)
 
     mainWindow = new BrowserWindow({
       width: 200,
@@ -62,6 +64,14 @@ function createWindow(overlayMode: boolean = false): void {
         contextIsolation: true,
         nodeIntegration: false,
       },
+    })
+
+    // Track overlay window movements to save custom position
+    mainWindow.on('moved', () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const newBounds = mainWindow.getBounds()
+        storeService?.set('customOverlayBounds', { x: newBounds.x, y: newBounds.y })
+      }
     })
   } else {
     // Normal window configuration

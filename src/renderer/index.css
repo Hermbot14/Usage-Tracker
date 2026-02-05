@@ -746,12 +746,13 @@
 
   /* Compact size */
   width: 200px;
-  padding: 12px;
+  max-height: 200px;
+  padding: 8px;
 
   /* Flex column layout with gap */
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 
   /* Text color */
   color: #E6E6E6;
@@ -763,6 +764,9 @@
   /* Ensure overlay stays on top */
   position: relative;
   z-index: 9999;
+
+  /* Overflow protection */
+  overflow: hidden;
 }
 
 /* Draggable header */
@@ -797,10 +801,10 @@
   background-color: rgba(255, 255, 255, 0.1);
 
   /* Border radius */
-  border-radius: 4px;
+  border-radius: 6px;
 
-  /* Padding */
-  padding: 4px 8px;
+  /* Improved padding for better touch targets */
+  padding: 6px 10px;
 
   /* Cursor indicator */
   cursor: pointer;
@@ -812,6 +816,22 @@
 
   /* Transition for hover effects */
   transition: background-color 0.2s ease;
+
+  /* WCAG compliant touch targets */
+  min-height: 32px;
+  min-width: 32px;
+
+  /* Flex center for icon alignment */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fixed width time display - prevents layout shift */
+.overlay-time {
+  font-family: var(--font-mono, 'Consolas', 'Monaco', 'Courier New', monospace);
+  min-width: 45px;
+  text-align: left;
 }
 
 /* Hover state for interactive elements */
@@ -821,21 +841,16 @@
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Progress circle center container */
+/* Progress circle center container - HIDDEN to save space for KEY DATA */
 .overlay-progress {
-  /* Center alignment */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  /* Vertical padding */
-  padding: 8px 0;
+  /* Hide progress circle to make room for reset time display */
+  display: none;
 }
 
 /* Percentage display */
 .overlay-percent {
-  /* Large font size */
-  font-size: 32px;
+  /* Large font size - KEY DATA */
+  font-size: 36px;
 
   /* Bold weight */
   font-weight: 700;
@@ -851,6 +866,67 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+
+  /* Compact margin */
+  margin: 2px 0;
+}
+
+/* Reset time container - KEY DATA! */
+.overlay-reset-time {
+  /* Flex layout for label + value */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Gap between label and value */
+  gap: 2px;
+
+  /* More padding for emphasis */
+  padding: 6px 8px;
+
+  /* Background to make it stand out */
+  background-color: rgba(255, 255, 255, 0.08);
+
+  /* Border radius */
+  border-radius: 8px;
+
+  /* Margin */
+  margin: 2px 0;
+}
+
+/* Reset time label */
+.overlay-reset-label {
+  /* Larger font size for visibility */
+  font-size: 11px;
+
+  /* High contrast for visibility */
+  color: rgba(230, 230, 230, 0.9);
+
+  /* Text transform for compact look */
+  text-transform: uppercase;
+
+  /* Letter spacing */
+  letter-spacing: 0.05em;
+}
+
+/* Reset time value - THE MOST IMPORTANT DATA! */
+.overlay-reset-value {
+  /* Larger font size for visibility */
+  font-size: 18px;
+
+  /* Bold weight */
+  font-weight: 700;
+
+  /* Primary text color */
+  color: #E6E6E6;
+
+  /* Monospace for numbers - FIXED WIDTH to prevent layout shift */
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  min-width: 64px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Mini progress bar container */
@@ -858,14 +934,14 @@
   /* Full width */
   width: 100%;
 
-  /* Compact height */
-  height: 6px;
+  /* Increased height for visibility */
+  height: 8px;
 
   /* Background for track */
   background-color: rgba(255, 255, 255, 0.1);
 
   /* Rounded corners */
-  border-radius: 3px;
+  border-radius: 4px;
 
   /* Overflow for fill animation */
   overflow: hidden;
@@ -888,13 +964,16 @@
   transition: width 0.3s ease;
 
   /* Border radius matching container */
-  border-radius: 3px;
+  border-radius: 4px;
+
+  /* Performance optimization */
+  will-change: width;
 }
 
 /* Alert message */
 .overlay-alert {
-  /* Small font size */
-  font-size: 11px;
+  /* Increased font size for readability */
+  font-size: 12px;
 
   /* Error color */
   color: #ef4444;
@@ -905,9 +984,9 @@
   /* Text center alignment */
   text-align: center;
 
-  /* Compact spacing */
+  /* Improved padding */
   margin: 0;
-  padding: 4px 0;
+  padding: 4px 6px;
 
   /* Word break for long messages */
   word-wrap: break-word;

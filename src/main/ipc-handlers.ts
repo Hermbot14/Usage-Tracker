@@ -213,6 +213,9 @@ export function registerIpcHandlers(
       // Store overlay position
       await storeService.set('overlayPosition', position)
 
+      // Clear custom overlay bounds when user selects a preset
+      await storeService.delete('customOverlayBounds')
+
       return { success: true }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to set overlay position'
