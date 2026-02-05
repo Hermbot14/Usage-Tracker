@@ -69,15 +69,29 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const handleSave = async () => {
     setSaveStatus('saving')
     try {
+      // First save the settings
       await updateSettings(localSettings)
+
+      // Small delay to ensure settings are persisted and state is updated
+      await new Promise(resolve => setTimeout(resolve, 100))
+
       setSaveStatus('saved')
       setTimeout(() => setSaveStatus('idle'), 2000)
 
-      // Fetch usage with new settings
+      // Then fetch usage with new settings (now safely persisted)
       if (localSettings.apiKey) {
-        await fetchUsage()
+        try {
+          await fetchUsage()
+        } catch (fetchError) {
+          console.error('Failed to fetch usage after saving settings:', fetchError)
+          // Don't show error for fetch failure - settings were saved successfully
+        }
       }
+
+      // Close the panel after successful save
+      setTimeout(() => onClose(), 500)
     } catch (error) {
+      console.error('Failed to save settings:', error)
       setSaveStatus('error')
       setTimeout(() => setSaveStatus('idle'), 2000)
     }

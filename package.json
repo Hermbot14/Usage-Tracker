@@ -11,7 +11,7 @@
     "build": "electron-vite build",
     "preview": "electron-vite build && electron out/main/index.cjs",
     "start": "node scripts/run-app.mjs",
-    "launch": "start \"\" \"dist/win-unpacked/Usage Tracker.exe\"",
+    "launch": "start \"\" \"dist5/win-unpacked/Usage Tracker.exe\"",
     "package": "electron-builder --win",
     "package:all": "electron-builder -mwl"
   },
