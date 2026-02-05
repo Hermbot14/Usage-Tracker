@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-02-05T12:00:00Z",
+  "summary": "Investigated why overlay mode isn't showing when enabled in Usage Tracker. Root cause identified: the recreateWindow function doesn't exist and registerIpcHandlers is called without required parameters (getWindow, recreateWindowFn). The set-overlay-mode IPC handler closes the window but has no way to recreate it with overlay-specific configuration (200x200, transparent, always-on-top, frameless).",
+  "current_status": "Root cause identified - missing implementation for window recreation with overlay mode configuration",
+  "files_modified": [],
+  "context_files": [
+    "src/renderer/components/UsageOverlay.tsx",
+    "src/renderer/App.tsx",
+    "src/main/ipc-handlers.ts",
+    "src/main/window-state-manager.ts",
+    "src/main/index.ts",
+    "src/renderer/components/SettingsPanel.tsx"
+  ],
+  "next_steps": [
+    "Implement recreateWindow function in src/main/index.ts that creates overlay-specific window configuration",
+    "Update registerIpcHandlers call to pass getWindow and recreateWindow parameters",
+    "Add CSS for UsageOverlay component to enforce 200x200 size",
+    "Implement window positioning logic for overlay corner placement",
+    "Test overlay mode enable/disable cycle"
+  ],
+  "blockers": []
+}

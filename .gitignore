@@ -1,8 +1,14 @@
 node_modules/
 dist/
+dist*/
 out/
 *.log
 .DS_Store
 resources/icon.{ico,icns,png}
 .vscode/
 .env
+playwright.config.ts
+test-results/
+tests/
+development/
+.claude/tmp/
