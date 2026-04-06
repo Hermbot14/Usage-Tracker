@@ -6,6 +6,8 @@
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat-square)](README.md)
 [![Electron](https://img.shields.io/badge/Electron-32.3.3-blue?style=flat-square)](https://www.electronjs.org/)
 
+> **Note**: This project originated from the [Auto-Claude](https://github.com/AndyMik90/Auto-Claude) repository - an autonomous multi-agent coding framework.
+
 ---
 
 ## 🎯 What Is This?
@@ -315,9 +317,11 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## 🙏 Acknowledgments
 
-- Based on usage tracking patterns from the **Auto-Claude Marketing Hub** codebase
-- Design system inspired by **Oscura** and modern design patterns
-- Built with ❤️ using Electron, React, and Tailwind CSS
+This project originated from the **Auto-Claude** repository ([github.com/AndyMik90/Auto-Claude](https://github.com/AndyMik90/Auto-Claude)) - an autonomous multi-agent coding framework. The Z-AI Usage Tracker was extracted and spun off as a standalone application to serve the broader ZAI/Claude developer community.
+
+- **Origin**: [Auto-Claude](https://github.com/AndyMik90/Auto-Claude) - Multi-agent autonomous coding framework
+- **Design system**: Inspired by **Oscura** and modern design patterns
+- **Built with**: Electron, React, and Tailwind CSS
 
 ---
 
