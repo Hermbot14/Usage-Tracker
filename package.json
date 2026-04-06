@@ -1,10 +1,28 @@
 {
-  "name": "usage-tracker",
+  "name": "zai-usage-tracker",
   "version": "1.0.0",
-  "description": "ZAI Usage Tracker Desktop App - Monitor your API usage in real-time",
+  "description": "Z-AI Usage Tracker - Real-time API usage monitoring for ZAI/Claude",
   "main": "out/main/index.cjs",
-  "author": "Hermie Cornejo",
+  "author": "Z-AI Usage Tracker Contributors",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hermbot14/Usage-Tracker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Hermbot14/Usage-Tracker/issues"
+  },
+  "homepage": "https://github.com/Hermbot14/Usage-Tracker#readme",
+  "keywords": [
+    "zai",
+    "claude",
+    "api",
+    "usage",
+    "monitor",
+    "tracker",
+    "desktop",
+    "electron"
+  ],
   "scripts": {
     "dev": "electron-vite dev --watch",
     "dev:patched": "electron-vite build --mode development && node scripts/patch-electron-import.mjs && electron out/main/index.cjs",
