@@ -3,6 +3,28 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
+## [2.1.0] — 2026-06-09
+
+### Added
+- **Dashboard revamp** (polished cards): provider marks, credential-type chips, status-colored
+  accent per card, refined session/weekly bars with reset countdowns.
+- **Overall status summary** strip: account count, most-constrained account, health dot,
+  last-updated, and a Refresh-all button.
+- **Per-account refresh** button on each card.
+- **Usage history sparkline** per account (in-memory recent session% trend).
+- Overlay opacity is now actually applied (window.setOpacity) and adjustable live.
+- Tray icon click (and a second app launch) now shows the dashboard.
+
+### Fixed
+- **App now fully quits** from the tray (was hiding to tray instead of exiting).
+- **Stuck in overlay mode** — the main/renderer overlay flags could desync (toggle recreated
+  the window before persisting), trapping the user with no expand button; ordering fixed and the
+  overlay expand button + tray "Show Dashboard" now reliably return to the desktop window.
+- The whole overlay card is draggable (was only the thin header).
+- Persisted settings (overlay mode, opacity, interval, thresholds, theme) are restored on launch
+  again; the main store now loads synchronously so startup reads see the saved values.
+- Click-through overlay uses `{ forward: true }` so hover-to-interact works.
+
 ## [2.0.0] — 2026-06-09
 
 Multi-provider revamp. The ZAI-only monitor is now a general coding-plan usage

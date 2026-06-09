@@ -24,6 +24,9 @@ interface UsageStore {
   accountUsage: Record<string, AccountUsageState>
   providers: ProviderInfo[]
   localAccounts: LocalAccountInfo[]
+  /** In-memory recent session/weekly % samples per account, for sparklines. */
+  accountHistory: Record<string, { t: number; s: number; w: number }[]>
+  refreshingIds: string[]
 
   // Actions
   setCurrentUsage: (usage: UsageData) => void
@@ -41,6 +44,8 @@ interface UsageStore {
   setAccountUsage: (id: string, state: AccountUsageState) => void
   setProviders: (providers: ProviderInfo[]) => void
   setLocalAccounts: (local: LocalAccountInfo[]) => void
+  appendHistory: (id: string, sessionPercent: number, weeklyPercent: number) => void
+  refreshAccount: (id: string) => Promise<void>
 }
 
 const defaultSettings: Settings = {
@@ -75,6 +80,8 @@ export const useUsageStore = create<UsageStore>((set, get) => ({
   accountUsage: {},
   providers: [],
   localAccounts: [],
+  accountHistory: {},
+  refreshingIds: [],
 
   // Actions
   setCurrentUsage: (usage) => {
@@ -215,4 +222,34 @@ export const useUsageStore = create<UsageStore>((set, get) => ({
   setProviders: (providers) => set({ providers }),
 
   setLocalAccounts: (localAccounts) => set({ localAccounts }),
+
+  appendHistory: (id, sessionPercent, weeklyPercent) =>
+    set((state) => {
+      const prev = state.accountHistory[id] ?? []
+      const next = [...prev, { t: Date.now(), s: sessionPercent, w: weeklyPercent }].slice(-48)
+      return { accountHistory: { ...state.accountHistory, [id]: next } }
+    }),
+
+  refreshAccount: async (id) => {
+    const account = get().accounts.find((a) => a.id === id)
+    if (!account) return
+    if (get().refreshingIds.includes(id)) return
+    set((s) => ({ refreshingIds: [...s.refreshingIds, id] }))
+    try {
+      const res = await window.api.fetchAccountUsage(account)
+      if (res.success && res.data) {
+        const usage = res.data as import('@/types').ProviderUsage
+        get().setAccountUsage(id, { status: 'ok', usage })
+        get().appendHistory(id, usage.sessionPercent, usage.weeklyPercent)
+      } else {
+        get().setAccountUsage(id, {
+          status: 'error',
+          error: res.error || 'Failed to fetch usage',
+          code: (res as { code?: string }).code,
+        })
+      }
+    } finally {
+      set((s) => ({ refreshingIds: s.refreshingIds.filter((x) => x !== id) }))
+    }
+  },
 }))

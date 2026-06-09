@@ -1,5 +1,6 @@
 import { useUsageStore } from '@stores/useUsageStore'
 import { AccountCard } from './AccountCard'
+import { StatusSummary } from './StatusSummary'
 
 interface AccountsViewProps {
   onOpenSettings: () => void
@@ -30,6 +31,7 @@ export function AccountsView({ onOpenSettings }: AccountsViewProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <StatusSummary />
       {accounts.map((account) => (
         <AccountCard
           key={account.id}

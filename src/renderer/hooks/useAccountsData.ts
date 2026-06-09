@@ -32,6 +32,7 @@ export function useAccountsData() {
     setProviders,
     setLocalAccounts,
     setCurrentUsage,
+    appendHistory,
   } = useUsageStore()
 
   const isFetchingRef = useRef(false)
@@ -62,6 +63,7 @@ export function useAccountsData() {
         if (res.success && res.data) {
           const usage = res.data as ProviderUsage
           setAccountUsage(account.id, { status: 'ok', usage })
+          appendHistory(account.id, usage.sessionPercent, usage.weeklyPercent)
           const worst = Math.max(usage.sessionPercent, usage.weeklyPercent)
           const primaryWorst = primary ? Math.max(primary.sessionPercent, primary.weeklyPercent) : -1
           if (worst > primaryWorst) primary = usage
@@ -83,7 +85,7 @@ export function useAccountsData() {
     } finally {
       isFetchingRef.current = false
     }
-  }, [setAccountUsage, setCurrentUsage])
+  }, [setAccountUsage, setCurrentUsage, appendHistory])
 
   // One-time bootstrap: providers, local logins, seed accounts.
   useEffect(() => {
