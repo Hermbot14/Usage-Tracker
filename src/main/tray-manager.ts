@@ -1,4 +1,4 @@
-import { Tray, Menu, nativeImage, BrowserWindow, Notification } from 'electron'
+import { Tray, Menu, nativeImage, BrowserWindow, Notification, app } from 'electron'
 import { join } from 'node:path'
 import type { UsageData } from '../renderer/types'
 
@@ -293,9 +293,10 @@ export class TrayManager {
   }
 
   private quit(): void {
-    if (this.mainWindow) {
-      this.mainWindow.close()
-    }
+    // Mark quitting so the window's close handler doesn't intercept and hide to
+    // tray, then quit the app (which fires before-quit → tray cleanup).
+    ;(app as { isQuitting?: boolean }).isQuitting = true
+    app.quit()
   }
 
   updateMainWindow(window: BrowserWindow): void {

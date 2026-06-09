@@ -58,9 +58,12 @@ function App() {
     }
   }
 
-  // Handler to expand from overlay mode to full UI
-  const handleExpandFromOverlay = () => {
-    updateSettings({ overlayMode: { ...settings.overlayMode, enabled: false } })
+  // Handler to expand from overlay mode back to the full desktop window.
+  // Persist enabled=false FIRST (so the recreated window's renderer reloads in
+  // dashboard mode), then ask main to recreate the normal window.
+  const handleExpandFromOverlay = async () => {
+    await updateSettings({ overlayMode: { ...settings.overlayMode, enabled: false } })
+    await window.api.setOverlayMode(false)
   }
 
   // Check if overlay mode is enabled

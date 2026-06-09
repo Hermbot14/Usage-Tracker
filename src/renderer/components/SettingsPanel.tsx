@@ -29,12 +29,12 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     // Update local state first
     handleChange('overlayMode', { ...localSettings.overlayMode, enabled })
 
-    // Call IPC handler to recreate window with overlay mode
-    const result = await window.api.setOverlayMode(enabled)
-    if (result.success) {
-      // Save settings after window recreation
-      await updateSettings({ overlayMode: { ...localSettings.overlayMode, enabled } })
-    }
+    // Persist the setting BEFORE recreating the window. setOverlayMode() destroys
+    // this renderer to rebuild the window, so a persist call made afterwards may
+    // never complete — which previously left settings.overlayMode.enabled out of
+    // sync with the main process flag (stuck-in-overlay with no expand button).
+    await updateSettings({ overlayMode: { ...localSettings.overlayMode, enabled } })
+    await window.api.setOverlayMode(enabled)
   }
 
   // Handle click-through toggle - requires IPC call
