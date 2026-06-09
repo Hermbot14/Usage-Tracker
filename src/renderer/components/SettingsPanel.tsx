@@ -115,7 +115,6 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         padding: '16px'
       }}
       onClick={onClose}
-      aria-hidden="true"
     >
       <div
         style={{

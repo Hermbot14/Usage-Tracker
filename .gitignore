@@ -43,7 +43,6 @@ desktop.ini
 .env.production.local
 
 # Testing
-playwright.config.ts
 test-results/
 tests/
 coverage/
@@ -91,3 +90,8 @@ settings.local.json
 # Package manager locks (keep package-lock.json, remove others if not used)
 # yarn.lock
 # pnpm-lock.yaml
+
+# E2E test outputs
+e2e/test-results/
+e2e/artifacts/
+playwright-report/

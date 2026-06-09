@@ -27,6 +27,8 @@
     "dev": "electron-vite dev --watch",
     "dev:patched": "electron-vite build --mode development && node scripts/patch-electron-import.mjs && electron out/main/index.cjs",
     "build": "electron-vite build",
+    "test:e2e": "playwright test",
+    "pretest:e2e": "electron-vite build",
     "preview": "electron-vite build && electron out/main/index.cjs",
     "start": "node scripts/run-app.mjs",
     "launch": "start \"\" \"dist5/win-unpacked/Usage Tracker.exe\"",
