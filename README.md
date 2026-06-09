@@ -1,342 +1,198 @@
-# Z-AI Usage Tracker
+# Usage Tracker
 
-> **Real-time API usage monitoring for ZAI/Claude - Never hit rate limits unexpectedly again**
+> **Real-time coding-plan usage monitoring across providers — never hit a rate limit unexpectedly again**
 
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat-square)](README.md)
-[![Electron](https://img.shields.io/badge/Electron-32.3.3-blue?style=flat-square)](https://www.electronjs.org/)
+[![Electron](https://img.shields.io/badge/Electron-32-blue?style=flat-square)](https://www.electronjs.org/)
 
-> **Note**: This project originated from the [Auto-Claude](https://github.com/AndyMik90/Auto-Claude) repository - an autonomous multi-agent coding framework.
+A lightweight desktop app that tracks your **coding-plan usage across multiple providers** — Claude Code, Z.AI / GLM, Zhipu, and OpenAI Codex — side by side, in real time. It runs in your system tray with color-coded status, a taskbar overlay, and desktop alerts before you hit a limit.
 
----
+Each provider is normalized to one shape — a short **session** window and a longer **weekly/monthly** window, as percentages — so a Claude card and a GLM card sit next to each other and read the same way.
 
-## 🎯 What Is This?
-
-**Z-AI Usage Tracker** is a lightweight, standalone desktop application that monitors your ZAI/GLM Coding Plan API usage in real-time. It runs quietly in your system tray, giving you at-a-glance visibility into your token consumption with color-coded status indicators and Windows taskbar integration.
-
-### Why This Exists
-
-Developers using ZAI's API often hit rate limits unexpectedly because:
-- Usage information is hidden behind CLI commands or web dashboards
-- No proactive alerts before hitting limits
-- Context switching to check usage interrupts your flow
-
-This app solves that by providing **always-visible usage monitoring** without leaving your development environment.
+> Originated from the [Aperant](https://github.com/AndyMik90/Aperant) project (formerly "Auto-Claude") — the usage-tracking engine was extracted and generalized into this standalone multi-provider tracker.
 
 ---
 
 ## ✨ Features
 
-### Core Features
-- **Real-Time Monitoring** - Live usage updates every 30 seconds
-- **System Tray Integration** - Color-coded status (🟢 Green < 50% | 🟡 Yellow 50-79% | 🔴 Red ≥ 80%)
-- **Windows Taskbar Overlay** - Percentage badge showing current usage level
-- **Multi-Theme Support** - 7 color themes × light/dark modes = 14 combinations
-- **Usage Alerts** - Desktop notifications when approaching rate limits
-- **Settings Management** - Configurable refresh intervals and alert thresholds
-- **Multi-Account Support** - Track multiple API profiles simultaneously
-
-### Visual Design
-- Circular progress indicators
-- Gradient progress bars
-- Card-based responsive layout
-- WCAG AA accessibility compliance
-- Keyboard navigation support
+- **Multi-provider, multi-account** — track Claude Code, Z.AI/GLM, Zhipu, and Codex simultaneously, each as its own card.
+- **Zero-config local logins** — for Claude Code and Codex it auto-reads the OAuth token their CLI already stored on your machine (no key to paste). Claude tokens are **auto-refreshed** when they expire.
+- **API-key providers** — Z.AI / Zhipu (and other API-key plans) added with a key + base URL.
+- **Smart rate-limit handling** — per-provider minimum poll interval and a cooldown that serves the last good snapshot instead of hammering an endpoint (Claude/Codex usage endpoints are sensitive to frequent polling).
+- **System tray + taskbar overlay** — color-coded status and a percentage badge for the most-constrained account.
+- **Alerts** — desktop notifications at configurable thresholds (80 / 90 / 100%).
+- **Multi-theme** — 7 themes × light/dark.
+- **Accessible** — keyboard navigation, screen-reader-friendly dialogs.
 
 ---
 
-## 📁 Project Structure
+## 🔌 Supported providers
 
-```
-zai-usage-tracker/
-├── docs/                      # Documentation
-│   ├── ZAI_API_DOCUMENTATION.md    # Complete API reference
-│   └── IMPLEMENTATION_GUIDE.md     # Step-by-step build guide
-├── prd/                       # Product Requirements
-│   └── PRD.md
-├── src/                       # Source code
-│   ├── main/                  # Electron main process
-│   │   ├── index.ts           # Main entry point
-│   │   ├── api-service.ts     # ZAI API integration
-│   │   ├── ipc-handlers.ts    # IPC communication
-│   │   ├── store-service.ts   # Local storage (electron-store)
-│   │   └── tray-manager.ts    # System tray & taskbar
-│   ├── preload/               # Preload scripts
-│   │   ├── index.ts           # Context bridge setup
-│   │   └── dts.ts             # TypeScript definitions
-│   └── renderer/              # React UI
-│       ├── components/        # UI components
-│       │   ├── UsageDisplay.tsx
-│       │   ├── SettingsPanel.tsx
-│       │   ├── HistoryChart.tsx
-│       │   └── ui/            # Reusable components
-│       ├── stores/            # Zustand state management
-│       ├── hooks/             # Custom React hooks
-│       ├── lib/               # Utilities
-│       └── types/             # TypeScript types
-├── scripts/                   # Build and dev scripts
-├── package.json               # Dependencies
-├── electron-builder.json      # Packaging config
-└── electron.vite.config.ts    # Vite bundler config
-```
+| Provider | Credential | Usage endpoint | Status |
+|----------|-----------|----------------|--------|
+| **Claude Code** (`anthropic`) | Local OAuth token (`~/.claude`), auto-refreshed | `api.anthropic.com/api/oauth/usage` | ✅ Live |
+| **Z.AI GLM** (`zai`) | API key | `…/api/monitor/usage/quota/limit` | ✅ Live |
+| **Zhipu / BigModel** (`zhipu`) | API key | `…/api/monitor/usage/quota/limit` | ✅ Live |
+| **OpenAI Codex** (`openai`) | Local OAuth token (`~/.codex`) | `chatgpt.com/backend-api/wham/usage` | ✅ Live |
+| DeepSeek, Kimi | API key | balance API only | 🟡 Scaffolded |
+| Qwen, MiniMax, OpenCode | — | no public usage window | 🟡 Scaffolded |
+
+**Scaffolded** providers appear in the picker but return a clear "not wired yet" message — we deliberately don't invent endpoints that don't exist. Adding one later is a single registry entry (+ a normalizer if its response shape is new). See [docs/PROVIDERS.md](docs/PROVIDERS.md).
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ (recommended: 20+)
-- npm or bun package manager
-- ZAI API access (API key or OAuth)
+- Node.js 20+ (22/24 fine)
+- npm
 
-### Installation
+### Install & run
 
 ```bash
-# Clone the repository
 git clone https://github.com/Hermbot14/Usage-Tracker.git
 cd Usage-Tracker
-
-# Install dependencies
 npm install
-
-# Start development mode
 npm run dev
 ```
 
-### Development Commands
+### Adding accounts
+- **Claude Code / Codex** — if you're already logged into the CLI, the app detects it automatically; open **Settings → Accounts**, pick the provider, and it adds with no key needed.
+- **Z.AI / Zhipu** — Settings → Accounts → pick the provider → paste your API key (base URL is pre-filled).
+
+### Scripts
 
 ```bash
-# Development mode (hot reload)
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Package for Windows
-npm run package
-
-# Launch packaged app
-npm run launch
+npm run dev        # dev mode (hot reload)
+npm run build      # production build (electron-vite)
+npm run preview    # build + launch
+npm run test:e2e   # Playwright Electron E2E (builds first, launches the app)
+npm run package    # Windows installer + portable (electron-builder)
 ```
 
 ---
 
-## 📦 Packaged Application
+## 🧱 Project Structure
 
-After running `npm run package`, you'll find:
-
-| File | Location | Description |
-|------|----------|-------------|
-| **Portable .exe** | `dist/win-unpacked/Usage Tracker.exe` | No installation required |
-| **NSIS Installer** | `dist/Usage Tracker-1.0.0-x64.exe` | Full installer with shortcuts |
-
-**Packaged Features:**
-- Shows "Usage Tracker" in Windows taskbar (not "Electron")
-- Taskbar overlay displays percentage (e.g., "45%")
-- System tray tooltip with usage details
-- Desktop shortcut creation
-- Start menu integration
-
----
-
-## 🎨 Available Themes
-
-| Theme | Description |
-|-------|-------------|
-| **Default** | Warm neutral tones |
-| **Dusk** | Purple/magenta palette |
-| **Lime** | Bright green/yellow |
-| **Ocean** | Blue/teal gradients |
-| **Retro** | Vintage warm colors |
-| **Neo** | Modern cool tones |
-| **Forest** | Natural green shades |
-
-Each theme supports **light** and **dark** mode variants (14 total combinations).
-
----
-
-## 🔧 Configuration
-
-### Settings Panel
-
-Access via the system tray menu → Settings:
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| **Refresh Interval** | 30s | How often to check API usage |
-| **Alert Threshold** | 80% | When to show notifications |
-| **Theme** | Default | Color theme selection |
-| **Mode** | System | Light / Dark / System |
-
-### Environment Variables (Optional)
-
-Create a `.env` file in the project root for development:
-
-```bash
-# Optional: Default API profile
-DEFAULT_API_KEY=your-api-key-here
-
-# Optional: Custom refresh interval (ms)
-USAGE_CHECK_INTERVAL=30000
 ```
-
-**Note:** API keys are stored securely in the system keychain, not in `.env` files.
-
----
-
-## 🛠️ Technology Stack
-
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Framework** | Electron 32.3.3 | Cross-platform desktop |
-| **Frontend** | React 19 + TypeScript | Component UI with type safety |
-| **Styling** | Tailwind CSS 4 | Utility-first CSS |
-| **State** | Zustand 5 | Lightweight state management |
-| **Build** | Vite 5 + electron-vite | Fast bundling |
-| **Storage** | electron-store | Persistent settings |
-| **Packaging** | electron-builder | Multi-platform builds |
-
----
-
-## 📋 Development Status
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Documentation | ✅ Complete | API docs, implementation guide |
-| Project Setup | ✅ Complete | Electron + React + TypeScript |
-| Type Definitions | ✅ Complete | Full TypeScript coverage |
-| API Integration | ✅ Complete | ZAI usage endpoint |
-| State Management | ✅ Complete | Zustand with persistence |
-| UI Components | ✅ Complete | All core components built |
-| System Tray | ✅ Complete | Color-coded status |
-| Taskbar Overlay | ✅ Complete | Percentage badge rendering |
-| IPC Communication | ✅ Complete | Main-renderer bridge |
-| Local Storage | ✅ Complete | Settings persistence |
-| Multi-Theme | ✅ Complete | 14 theme combinations |
-| Windows Packaging | ✅ Complete | Portable + installer |
-| Accessibility | ✅ Complete | WCAG AA compliance |
+Usage-Tracker/
+├── docs/
+│   ├── PROVIDERS.md              # Provider registry + how to add a provider
+│   ├── ZAI_API_DOCUMENTATION.md  # Z.AI quota API reference
+│   └── IMPLEMENTATION_GUIDE.md
+├── e2e/
+│   └── app.spec.ts               # Playwright Electron E2E
+├── src/
+│   ├── main/                     # Electron main process
+│   │   ├── index.ts
+│   │   ├── ipc-handlers.ts       # fetch-usage, fetch-account-usage, list-providers, discover-local-accounts
+│   │   ├── store-service.ts      # JSON store in userData
+│   │   ├── tray-manager.ts
+│   │   └── providers/            # ── multi-provider usage engine ──
+│   │       ├── types.ts          # ProviderDescriptor, NormalizedUsage
+│   │       ├── registry.ts       # declarative provider catalog + detect/endpoint
+│   │       ├── credentials.ts    # auto-read local OAuth tokens (Claude/Codex/Qwen)
+│   │       ├── claude-token.ts   # Claude OAuth refresh + atomic write-back
+│   │       ├── normalizers.ts    # Anthropic / Codex / ZAI-Zhipu → NormalizedUsage
+│   │       └── usage-service.ts  # resolve + fetch + normalize, rate-limit handling
+│   ├── preload/
+│   └── renderer/                 # React UI
+│       ├── components/
+│       │   ├── AccountsView.tsx      # the main multi-card view
+│       │   ├── AccountCard.tsx       # one account's session/weekly bars
+│       │   ├── AccountsManager.tsx   # add/remove accounts (in Settings)
+│       │   ├── SettingsPanel.tsx
+│       │   └── ui/
+│       ├── hooks/useAccountsData.ts  # discover + poll all accounts
+│       ├── stores/useUsageStore.ts   # Zustand store (accounts + per-account usage)
+│       ├── lib/ · types/
+├── playwright.config.ts
+├── electron-builder.json
+└── electron.vite.config.ts
+```
 
 ---
 
 ## 🔍 How It Works
 
-### API Endpoint
+Every provider is fetched with a single authenticated `GET` and mapped to a common `NormalizedUsage`:
 
-The app monitors usage via ZAI's quota endpoint:
-
-```
-GET https://api.z.ai/api/monitor/usage/quota/limit
-Authorization: Bearer {token}
+```ts
+{ sessionPercent, weeklyPercent, sessionResetTime, weeklyResetTime, … }
 ```
 
-### Response Format
+- **Anthropic** — `GET /api/oauth/usage` with the Claude Code OAuth token and beta headers; response `{ five_hour.utilization, seven_day.utilization, resets_at }`. The token is auto-refreshed via the OAuth refresh grant and written back to `~/.claude/.credentials.json` (atomic, with a one-time `.bak` backup) so the CLI and app stay in sync.
+- **OpenAI Codex** — `GET /backend-api/wham/usage` with the ChatGPT OAuth token; `rate_limit.{primary,secondary}_window.used_percent`.
+- **Z.AI / Zhipu** — `GET /api/monitor/usage/quota/limit` with the API key; `data.limits[]` (`TOKENS_LIMIT` → session, `TIME_LIMIT` → weekly/monthly).
 
-```json
-{
-  "data": {
-    "limits": [
-      {
-        "type": "TOKENS_LIMIT",
-        "percentage": 72.5,
-        "currentValue": 362500,
-        "usage": 500000,
-        "nextResetTime": 1738612800000
-      }
-    ]
-  }
-}
-```
-
-### Monitoring Loop
-
-1. App starts → loads saved API profile
-2. Fetches usage from ZAI API every 30 seconds
-3. Updates system tray icon color based on usage %
-4. Updates taskbar overlay badge with percentage
-5. Shows notification if usage exceeds threshold
+The poller runs on your configured interval, but providers declare a **minimum poll interval** (Claude/Codex = 60s) and a **5-minute cooldown on HTTP 429** — within those windows the last good snapshot is served instead of re-hitting the endpoint.
 
 ---
 
-## 🪟 Windows Taskbar Integration
+## 🧪 Testing
 
-The app provides native Windows taskbar integration:
+End-to-end tests use **Playwright's Electron support** (the correct tool for Electron — Puppeteer can't attach to the main process):
 
-- **App Name**: Shows "Usage Tracker" (not "Electron")
-- **Overlay Icon**: Percentage badge with color coding
-  - 🟢 Green: < 50% usage
-  - 🟡 Yellow: 50-79% usage
-  - 🔴 Red: ≥ 80% usage
-- **Window Title**: Updates with percentage and reset time
-- **Tooltip**: Detailed usage info on hover
+```bash
+npm run test:e2e
+```
+
+This builds the app, launches it in an isolated `--user-data-dir` (so it never collides with a running instance), and drives a smoke test plus the full account flow (provider catalog, local-login detection, add account, card render).
 
 ---
 
-## 📄 API Documentation
+## 🛠️ Technology Stack
 
-For detailed API documentation, see:
-- [ZAI_API_DOCUMENTATION.md](docs/ZAI_API_DOCUMENTATION.md) - Complete API reference
-- [IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md) - Build guide
+| Component | Technology |
+|-----------|------------|
+| Framework | Electron 32 |
+| Frontend | React 19 + TypeScript |
+| Styling | Tailwind CSS 4 |
+| State | Zustand 5 |
+| Build | Vite 5 + electron-vite |
+| Storage | JSON store in Electron `userData` |
+| E2E | Playwright (Electron) |
+| Packaging | electron-builder |
+
+---
+
+## ⚙️ Configuration
+
+| Setting | Default | Notes |
+|---------|---------|-------|
+| Refresh interval | 5s | Slider 10s–5min; Claude/Codex are throttled to ≥60s regardless |
+| Alert thresholds | 80 / 90 / 100% | Desktop notifications |
+| Theme / mode | Default / System | 7 themes × light/dark |
+| Overlay mode | off | Compact always-on-top corner overlay |
+
+Accounts and settings are persisted in the Electron `userData` directory. Local OAuth tokens are read from the provider CLI's own credential store (`~/.claude`, `~/.codex`) — the app does not copy them into its own config.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Ways to Contribute
-- 🐛 Report bugs via GitHub Issues
-- ✨ Suggest new features
-- 📝 Improve documentation
-- 💻 Submit pull requests
-
-### Development Workflow
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to your fork (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md). The most common contribution is **adding a provider** — see [docs/PROVIDERS.md](docs/PROVIDERS.md) for the registry/adapter walkthrough.
 
 ---
 
 ## 📝 Changelog
 
-### Version 1.0.0
-- ✅ Fixed Electron runtime issues
-- ✅ Implemented multi-theme support (14 combinations)
-- ✅ Added Windows taskbar overlay with percentage display
-- ✅ Created reusable UI component library
-- ✅ WCAG AA accessibility compliance
-- ✅ Windows packaging with proper app name
-
-See [CHANGELOG.md](CHANGELOG.md) for full version history.
+See [CHANGELOG.md](CHANGELOG.md). Current: **v2.0.0** — multi-provider revamp (Claude Code, Z.AI/GLM, Zhipu, Codex), provider registry, local-login auto-detection + Claude token auto-refresh, multi-account UI, Playwright E2E.
 
 ---
 
 ## 🙏 Acknowledgments
 
-This project originated from the **Auto-Claude** repository ([github.com/AndyMik90/Auto-Claude](https://github.com/AndyMik90/Auto-Claude)) - an autonomous multi-agent coding framework. The Z-AI Usage Tracker was extracted and spun off as a standalone application to serve the broader ZAI/Claude developer community.
-
-- **Origin**: [Auto-Claude](https://github.com/AndyMik90/Auto-Claude) - Multi-agent autonomous coding framework
-- **Design system**: Inspired by **Oscura** and modern design patterns
-- **Built with**: Electron, React, and Tailwind CSS
+The usage-tracking engine was extracted and generalized from **[Aperant](https://github.com/AndyMik90/Aperant)** (formerly "Auto-Claude") — an autonomous multi-agent coding framework.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
+MIT — see [LICENSE](LICENSE).
 
 ## 🔗 Links
 
 - **Repository**: [github.com/Hermbot14/Usage-Tracker](https://github.com/Hermbot14/Usage-Tracker)
 - **Issues**: [Report a bug](https://github.com/Hermbot14/Usage-Tracker/issues)
-- **Discussions**: [Community forum](https://github.com/Hermbot14/Usage-Tracker/discussions)
-
----
-
-**Built for developers, by developers** 🚀

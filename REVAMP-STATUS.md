@@ -42,17 +42,19 @@ Wired into IPC (`ipc-handlers.ts` + `preload/index.ts`):
 ✅ `npm run build` passes. New modules add zero TypeScript errors (12 pre-existing
 errors in index/tray/window-state are untouched and unrelated).
 
-### Already usable today
-Point the existing single-account UI's base URL at `https://api.anthropic.com` and it
-auto-reads the local Claude Code token → shows Claude session/weekly %. (The API key
-field is ignored for OAuth-local providers.)
+## Status: shipped (v2.0.0)
 
-## Remaining (task #5 — renderer multi-account UI)
+> This file is the original engineering note. For the user-facing summary see
+> [README.md](README.md), [CHANGELOG.md](CHANGELOG.md), and
+> [docs/PROVIDERS.md](docs/PROVIDERS.md).
 
-- `accounts[]` in the store + store schema/migration
-- Account cards in `UsageDisplay` (one per provider, using `NormalizedUsage`)
-- Provider/account picker in `SettingsPanel` (uses `list-providers` + `discover-local-accounts`)
-- Poll all accounts on the refresh interval; tray/overlay aggregate or active-account view
+All of the below is complete and on `master`:
 
-Repo already self-identifies as the new home: `package.json` name `zai-usage-tracker`,
-repo URL `Hermbot14/Usage-Tracker.git`.
+- Multi-account renderer UI — `accounts[]` store + migration, `AccountsView` /
+  `AccountCard` / `AccountsManager`, provider/account picker using `list-providers`
+  + `discover-local-accounts`, polling all accounts on the refresh interval, with the
+  most-constrained account mirrored into tray/overlay.
+- Claude token auto-refresh (`claude-token.ts`) + per-provider rate-limit handling
+  (min-poll 60s, 5-min 429 cooldown). Live-verified: Claude card shows real session/weekly %.
+- Playwright Electron E2E (`e2e/app.spec.ts`, `npm run test:e2e`) — passing.
+- Repo renamed to `Hermbot14/Usage-Tracker`; `package.json` → `usage-tracker` v2.0.0.
