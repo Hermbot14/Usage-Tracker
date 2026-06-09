@@ -6,9 +6,12 @@ export class TrayManager {
   private tray: Tray | null = null
   private mainWindow: BrowserWindow | null = null
   private currentUsage: UsageData | null = null
+  /** Provided by main: reverts overlay → dashboard and shows the window. */
+  private onShowDashboard?: () => void
 
-  constructor(mainWindow: BrowserWindow) {
+  constructor(mainWindow: BrowserWindow, onShowDashboard?: () => void) {
     this.mainWindow = mainWindow
+    this.onShowDashboard = onShowDashboard
     this.createTray()
   }
 
@@ -20,6 +23,10 @@ export class TrayManager {
 
     // Set initial tooltip so it doesn't show "Electron"
     this.tray.setToolTip('Usage Tracker\nLoading...')
+
+    // Left-click (or double-click) the tray icon → show the dashboard.
+    this.tray.on('click', () => this.showDashboard())
+    this.tray.on('double-click', () => this.showDashboard())
 
     this.updateMenu()
   }
@@ -90,7 +97,7 @@ export class TrayManager {
       { type: 'separator' as const },
       {
         label: 'Show Dashboard',
-        click: () => this.showWindow(),
+        click: () => this.showDashboard(),
       },
       {
         label: 'Refresh',
@@ -274,6 +281,18 @@ export class TrayManager {
     if (Notification.isSupported()) {
       new Notification({ title, body, silent: false }).show()
     }
+  }
+
+  /**
+   * Show the dashboard. If main provided an onShowDashboard handler (which
+   * reverts overlay mode → normal window), use it; otherwise just show.
+   */
+  private showDashboard(): void {
+    if (this.onShowDashboard) {
+      this.onShowDashboard()
+      return
+    }
+    this.showWindow()
   }
 
   private showWindow(): void {

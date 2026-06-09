@@ -174,6 +174,27 @@ function recreateWindow(overlayMode: boolean): void {
   }
 }
 
+// Revert overlay → dashboard (if needed) and show the window. Used by the tray.
+function showDashboard(): void {
+  const isOverlay = storeService?.get('overlayMode', false) || false
+  if (isOverlay) {
+    // Clear both the start-mode flag and the renderer setting so the rebuilt
+    // window comes up in dashboard mode and stays there next launch.
+    storeService?.set('overlayMode', false)
+    const settings = storeService?.get('settings', null) as { overlayMode?: { enabled?: boolean } } | null
+    if (settings?.overlayMode) {
+      settings.overlayMode.enabled = false
+      storeService?.set('settings', settings)
+    }
+    recreateWindow(false)
+  }
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+  }
+}
+
 // Prevent multiple instances
 const gotTheLock = app.requestSingleInstanceLock()
 
@@ -181,11 +202,8 @@ if (!gotTheLock) {
   app.quit()
 } else {
   app.on('second-instance', () => {
-    // When opening second instance, focus the main window
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
-    }
+    // Launching again brings the dashboard back to the front (and out of overlay).
+    showDashboard()
   })
 
   app.whenReady().then(() => {
@@ -201,7 +219,7 @@ if (!gotTheLock) {
     createWindow(overlayMode)
 
     // Initialize tray manager after window creation
-    trayManager = new TrayManager(mainWindow!)
+    trayManager = new TrayManager(mainWindow!, showDashboard)
 
     // Register IPC handlers with all required callbacks
     registerIpcHandlers(
