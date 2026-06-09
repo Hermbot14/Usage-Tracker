@@ -67,6 +67,13 @@ export interface ProviderDescriptor {
   /** Label for the long window, e.g. "7-day" or "monthly". */
   weeklyWindowLabel: string
   /**
+   * Minimum interval between live usage fetches for this provider, in ms.
+   * Polls inside this window are served from the last good snapshot. Anthropic's
+   * usage endpoint rate-limits aggressively, so it needs a higher floor than the
+   * UI refresh interval (which suits ZAI's 5s polling).
+   */
+  minPollMs?: number
+  /**
    * `true`  → a real adapter is wired and the provider fetches live data.
    * `false` → registry stub; selecting it explains it's not yet supported.
    */

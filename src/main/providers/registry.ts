@@ -31,8 +31,9 @@ export const PROVIDERS: Record<ProviderId, ProviderDescriptor> = {
     badgeClass: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
     sessionWindowLabel: '5-hour',
     weeklyWindowLabel: '7-day',
+    minPollMs: 60_000, // Anthropic's usage endpoint rate-limits frequent polls
     implemented: true,
-    notes: 'Reads the OAuth token Claude Code stored locally (~/.claude).',
+    notes: 'Reads the OAuth token Claude Code stored locally (~/.claude); auto-refreshes when expired.',
   },
 
   zai: {
@@ -79,6 +80,7 @@ export const PROVIDERS: Record<ProviderId, ProviderDescriptor> = {
     badgeClass: 'bg-green-500/10 text-green-500 border-green-500/20',
     sessionWindowLabel: '5-hour',
     weeklyWindowLabel: 'weekly',
+    minPollMs: 60_000,
     implemented: true,
     notes: 'Reads the ChatGPT OAuth token Codex stored locally (~/.codex).',
   },

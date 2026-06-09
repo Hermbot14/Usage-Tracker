@@ -11,7 +11,7 @@ plus reset timestamps (`NormalizedUsage`). One GET per provider, Bearer auth.
 
 | Provider | Endpoint | Credential | Status |
 |---|---|---|---|
-| Claude Code (`anthropic`) | `api.anthropic.com/api/oauth/usage` (beta headers) | OAuth token auto-read from `~/.claude` | ✅ implemented |
+| Claude Code (`anthropic`) | `api.anthropic.com/api/oauth/usage` (beta headers) | OAuth token auto-read from `~/.claude`, auto-refreshed on expiry | ✅ implemented |
 | Z.AI GLM (`zai`) | `…/api/monitor/usage/quota/limit` | API key | ✅ implemented |
 | Zhipu BigModel (`zhipu`) | `…/api/monitor/usage/quota/limit` | API key | ✅ implemented |
 | OpenAI Codex (`openai`) | `chatgpt.com/backend-api/wham/usage` | OAuth token auto-read from `~/.codex` | ✅ implemented |
