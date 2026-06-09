@@ -1,0 +1,139 @@
+import { useEffect, useCallback, useRef } from 'react'
+import { useUsageStore } from '@stores/useUsageStore'
+import type { AccountConfig, ProviderUsage, UsageData } from '@/types'
+
+/** Map a normalized ProviderUsage onto the legacy UsageData shape (tray/overlay). */
+function toLegacy(u: ProviderUsage): UsageData {
+  return {
+    sessionUsage: u.sessionUsage ?? 0,
+    sessionLimit: u.sessionLimit ?? 0,
+    sessionPercent: u.sessionPercent,
+    sessionResetTime: u.sessionResetTime,
+    weeklyUsage: u.weeklyUsage ?? 0,
+    weeklyLimit: u.weeklyLimit ?? 0,
+    weeklyPercent: u.weeklyPercent,
+    weeklyResetTime: u.weeklyResetTime,
+    lastUpdated: u.lastUpdated,
+  }
+}
+
+/**
+ * Drives the multi-account view: discovers providers + local logins, seeds
+ * accounts on first run, then polls every account on the refresh interval.
+ * The most-constrained account is mirrored into `currentUsage` so the existing
+ * tray and overlay keep working unchanged.
+ */
+export function useAccountsData() {
+  const {
+    settings,
+    accounts,
+    setAccounts,
+    setAccountUsage,
+    setProviders,
+    setLocalAccounts,
+    setCurrentUsage,
+  } = useUsageStore()
+
+  const isFetchingRef = useRef(false)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  const pollAll = useCallback(async () => {
+    const list = useUsageStore.getState().accounts
+    if (list.length === 0 || isFetchingRef.current) return
+    isFetchingRef.current = true
+
+    try {
+      const results = await Promise.all(
+        list.map(async (account) => {
+          try {
+            const res = await window.api.fetchAccountUsage(account)
+            return { account, res }
+          } catch (err) {
+            return {
+              account,
+              res: { success: false, error: err instanceof Error ? err.message : 'Fetch failed' },
+            }
+          }
+        }),
+      )
+
+      let primary: ProviderUsage | null = null
+      for (const { account, res } of results) {
+        if (res.success && res.data) {
+          const usage = res.data as ProviderUsage
+          setAccountUsage(account.id, { status: 'ok', usage })
+          const worst = Math.max(usage.sessionPercent, usage.weeklyPercent)
+          const primaryWorst = primary ? Math.max(primary.sessionPercent, primary.weeklyPercent) : -1
+          if (worst > primaryWorst) primary = usage
+        } else {
+          setAccountUsage(account.id, {
+            status: 'error',
+            error: res.error || 'Failed to fetch usage',
+            code: (res as { code?: string }).code,
+          })
+        }
+      }
+
+      // Mirror the most-constrained account into the legacy tray/overlay state.
+      if (primary) {
+        const legacy = toLegacy(primary)
+        setCurrentUsage(legacy)
+        await window.api.updateTray(legacy)
+      }
+    } finally {
+      isFetchingRef.current = false
+    }
+  }, [setAccountUsage, setCurrentUsage])
+
+  // One-time bootstrap: providers, local logins, seed accounts.
+  useEffect(() => {
+    const bootstrap = async () => {
+      try {
+        const [providers, local] = await Promise.all([
+          window.api.listProviders(),
+          window.api.discoverLocalAccounts(),
+        ])
+        setProviders(providers)
+        setLocalAccounts(local)
+
+        const stored = (await window.api.store.get('accounts', null)) as AccountConfig[] | null
+        if (stored && Array.isArray(stored)) {
+          setAccounts(stored)
+        } else {
+          // First run — seed from the legacy single-key setting + detected logins.
+          const seeded: AccountConfig[] = []
+          const s = useUsageStore.getState().settings
+          if (s.apiKey) {
+            seeded.push({ id: 'zai-default', name: 'Z.AI GLM', provider: 'zai', apiKey: s.apiKey, baseUrl: s.baseUrl })
+          }
+          const labelFor = (p: string) => providers.find((x) => x.id === p)?.label ?? p
+          for (const loc of local) {
+            if (seeded.some((a) => a.provider === loc.provider)) continue
+            seeded.push({ id: `${loc.provider}-local`, name: labelFor(loc.provider), provider: loc.provider })
+          }
+          setAccounts(seeded)
+          await window.api.store.set('accounts', seeded)
+        }
+      } catch (error) {
+        console.error('Failed to bootstrap accounts:', error)
+      }
+    }
+    bootstrap()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Poll on interval + whenever the account set changes.
+  useEffect(() => {
+    if (accounts.length === 0) return
+    pollAll()
+    intervalRef.current = setInterval(pollAll, settings.refreshInterval * 1000)
+
+    const cleanupListener = window.api.onRefreshUsage(() => pollAll())
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      cleanupListener()
+    }
+  }, [pollAll, settings.refreshInterval, accounts])
+
+  return { pollAll }
+}

@@ -90,6 +90,78 @@ export interface StoreState {
   lastFetchTime: number | null
 }
 
+// ---------------------------------------------------------------------------
+// Multi-provider types (mirror of src/main/providers/types.ts NormalizedUsage)
+// ---------------------------------------------------------------------------
+
+export type ProviderId =
+  | 'anthropic'
+  | 'zai'
+  | 'zhipu'
+  | 'openai'
+  | 'kimi'
+  | 'minimax'
+  | 'qwen'
+  | 'deepseek'
+  | 'opencode'
+  | 'unknown'
+
+/** Provider catalog entry returned by window.api.listProviders(). */
+export interface ProviderInfo {
+  id: ProviderId
+  label: string
+  shortLabel: string
+  baseUrl: string
+  auth: 'apiKey' | 'oauthLocal' | 'oauthPaste'
+  capability: 'quota' | 'balance' | 'none'
+  implemented: boolean
+  badgeClass: string
+  sessionWindowLabel: string
+  weeklyWindowLabel: string
+  notes?: string
+}
+
+/** A configured account the user tracks. */
+export interface AccountConfig {
+  id: string
+  name: string
+  provider: ProviderId
+  /** API key for apiKey/oauthPaste providers; omitted for oauthLocal. */
+  apiKey?: string
+  /** Optional base-URL override. */
+  baseUrl?: string
+}
+
+/** Normalized usage for one account (matches main-process NormalizedUsage). */
+export interface ProviderUsage {
+  provider: ProviderId
+  sessionPercent: number
+  weeklyPercent: number
+  sessionResetTime: string
+  weeklyResetTime: string
+  sessionUsage?: number
+  sessionLimit?: number
+  weeklyUsage?: number
+  weeklyLimit?: number
+  sessionWindowLabel: string
+  weeklyWindowLabel: string
+  limitType?: 'session' | 'weekly'
+  email?: string
+  lastUpdated: string
+}
+
+/** Per-account live state held in the store. */
+export type AccountUsageState =
+  | { status: 'loading' }
+  | { status: 'ok'; usage: ProviderUsage }
+  | { status: 'error'; error: string; code?: string }
+
+/** A locally-detected OAuth login (Claude Code / Codex / Qwen). */
+export interface LocalAccountInfo {
+  provider: ProviderId
+  email?: string | null
+}
+
 // Usage Status
 export type UsageStatus = 'healthy' | 'warning' | 'critical'
 

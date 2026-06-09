@@ -6,6 +6,10 @@ const api = {
   // Usage operations
   fetchUsage: (apiKey: string, baseUrl: string) =>
     ipcRenderer.invoke('fetch-usage', apiKey, baseUrl),
+  fetchAccountUsage: (account: unknown) =>
+    ipcRenderer.invoke('fetch-account-usage', account),
+  listProviders: () => ipcRenderer.invoke('list-providers'),
+  discoverLocalAccounts: () => ipcRenderer.invoke('discover-local-accounts'),
 
   // Store operations
   store: {

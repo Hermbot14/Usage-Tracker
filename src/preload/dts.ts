@@ -13,7 +13,16 @@ declare global {
         success: boolean
         data?: any
         error?: string
+        code?: string
       }>
+      fetchAccountUsage: (account: any) => Promise<{
+        success: boolean
+        data?: any
+        error?: string
+        code?: string
+      }>
+      listProviders: () => Promise<any[]>
+      discoverLocalAccounts: () => Promise<any[]>
       store: {
         get: (key: string, defaultValue?: any) => Promise<any>
         set: (key: string, value: any) => Promise<{ success: boolean }>

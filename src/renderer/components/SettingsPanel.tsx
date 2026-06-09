@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useUsageStore } from '@stores/useUsageStore'
-import { useUsageData } from '@hooks/useUsageData'
-import { Button } from './ui/Button'
+import { AccountsManager } from './AccountsManager'
 import { Badge } from './ui/Badge'
 
 interface SettingsPanelProps {
@@ -11,7 +10,6 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const { settings, updateSettings } = useUsageStore()
-  const { fetchUsage } = useUsageData()
   const [localSettings, setLocalSettings] = useState({ ...settings })
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
@@ -78,15 +76,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       setSaveStatus('saved')
       setTimeout(() => setSaveStatus('idle'), 2000)
 
-      // Then fetch usage with new settings (now safely persisted)
-      if (localSettings.apiKey) {
-        try {
-          await fetchUsage()
-        } catch (fetchError) {
-          console.error('Failed to fetch usage after saving settings:', fetchError)
-          // Don't show error for fetch failure - settings were saved successfully
-        }
-      }
+      // Accounts drive polling now; the interval picks up new settings automatically.
 
       // Close the panel after successful save
       setTimeout(() => onClose(), 500)
@@ -182,96 +172,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
         {/* Content */}
         <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* API Configuration */}
-          <div>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'var(--color-text-secondary)',
-              margin: '0 0 12px'
-            }}>
-              API Configuration
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label htmlFor="apiKey" style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: '6px'
-                }}>
-                  API Key
-                </label>
-                <input
-                  id="apiKey"
-                  type="password"
-                  value={localSettings.apiKey}
-                  onChange={(e) => handleChange('apiKey', e.target.value)}
-                  placeholder={settings.apiKey ? maskApiKey(settings.apiKey) : 'Enter your API key'}
-                  aria-describedby="apiKey-description"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border-default)',
-                    backgroundColor: 'var(--color-surface-elevated)',
-                    color: 'var(--color-text-primary)',
-                    fontSize: '14px',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = 'var(--color-accent-primary)'
-                    e.target.style.boxShadow = 'var(--shadow-focus)'
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'var(--color-border-default)'
-                    e.target.style.boxShadow = 'none'
-                  }}
-                />
-                <span id="apiKey-description" style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', display: 'block', marginTop: '4px' }}>
-                  Your ZAI API key for authentication
-                </span>
-              </div>
-              <div>
-                <label htmlFor="baseUrl" style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: '6px'
-                }}>
-                  Base URL
-                </label>
-                <input
-                  id="baseUrl"
-                  type="text"
-                  value={localSettings.baseUrl}
-                  onChange={(e) => handleChange('baseUrl', e.target.value)}
-                  aria-describedby="baseUrl-description"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border-default)',
-                    backgroundColor: 'var(--color-surface-elevated)',
-                    color: 'var(--color-text-primary)',
-                    fontSize: '14px',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = 'var(--color-accent-primary)'
-                    e.target.style.boxShadow = 'var(--shadow-focus)'
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'var(--color-border-default)'
-                    e.target.style.boxShadow = 'none'
-                  }}
-                />
-                <span id="baseUrl-description" style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', display: 'block', marginTop: '4px' }}>
-                  API endpoint URL
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Accounts */}
+          <AccountsManager />
 
           {/* Refresh Settings */}
           <div>

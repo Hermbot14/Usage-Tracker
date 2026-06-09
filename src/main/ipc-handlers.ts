@@ -1,7 +1,15 @@
 import { ipcMain, app, BrowserWindow, screen } from 'electron'
-import { ApiService } from './api-service'
 import { StoreService } from './store-service'
 import type { UsageData } from '../renderer/types'
+import {
+  fetchAccountUsage,
+  toLegacyUsageData,
+  detectProvider,
+  detectLocalAccounts,
+  PROVIDER_LIST,
+  type UsageAccount,
+  type ProviderId,
+} from './providers'
 
 let trayManager: any = null
 let usageRefreshInterval: NodeJS.Timeout | null = null
@@ -18,25 +26,66 @@ export function registerIpcHandlers(
   getMainWindow = getWindow
   recreateWindow = recreateWindowFn || null
 
-  // Fetch usage data
+  // Fetch usage data (legacy single-account signature).
+  // The provider is detected from baseUrl; oauthLocal providers (Claude/Codex)
+  // ignore apiKey and read the token the provider's CLI stored locally.
   ipcMain.handle('fetch-usage', async (_event, apiKey: string, baseUrl: string) => {
-    try {
-      const service = new ApiService(apiKey, baseUrl)
-      const usage = await service.fetchUsage()
-
-      // Update tray with new data
-      if (trayManager) {
-        trayManager().updateUsage(usage)
-      }
-
-      // Check for alerts
-      await checkAlertThresholds(usage, storeService)
-
-      return { success: true, data: usage }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to fetch usage'
-      return { success: false, error: message }
+    const account: UsageAccount = {
+      id: 'active',
+      name: 'Active account',
+      provider: detectProvider(baseUrl),
+      apiKey,
+      baseUrl,
     }
+    const result = await fetchAccountUsage(account)
+    if (!result.ok) {
+      return { success: false, error: result.error, code: result.code }
+    }
+    const usage = toLegacyUsageData(result.usage)
+
+    if (trayManager) {
+      trayManager().updateUsage(usage)
+    }
+    await checkAlertThresholds(usage, storeService)
+
+    return { success: true, data: usage }
+  })
+
+  // Fetch usage for an explicit account (multi-account flow).
+  ipcMain.handle('fetch-account-usage', async (_event, account: UsageAccount) => {
+    const result = await fetchAccountUsage(account)
+    if (!result.ok) {
+      return { success: false, error: result.error, code: result.code }
+    }
+    return { success: true, data: result.usage }
+  })
+
+  // List the providers the app knows about (for the account picker).
+  ipcMain.handle('list-providers', async () => {
+    return PROVIDER_LIST.map((p) => ({
+      id: p.id,
+      label: p.label,
+      shortLabel: p.shortLabel,
+      baseUrl: p.baseUrl,
+      auth: p.auth,
+      capability: p.capability,
+      implemented: p.implemented,
+      badgeClass: p.badgeClass,
+      sessionWindowLabel: p.sessionWindowLabel,
+      weeklyWindowLabel: p.weeklyWindowLabel,
+      notes: p.notes,
+    }))
+  })
+
+  // Discover locally-signed-in OAuth accounts (Claude Code, Codex, Qwen).
+  ipcMain.handle('discover-local-accounts', async () => {
+    const found = detectLocalAccounts()
+    const sourceToProvider: Record<string, ProviderId> = {
+      claude: 'anthropic',
+      codex: 'openai',
+      qwen: 'qwen',
+    }
+    return found.map((f) => ({ provider: sourceToProvider[f.source] ?? 'unknown', email: f.email ?? null }))
   })
 
   // Store operations

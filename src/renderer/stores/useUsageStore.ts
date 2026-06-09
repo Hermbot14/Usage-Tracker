@@ -1,5 +1,13 @@
 import { create } from 'zustand'
-import type { UsageData, UsageHistoryEntry, Settings } from '@/types'
+import type {
+  UsageData,
+  UsageHistoryEntry,
+  Settings,
+  AccountConfig,
+  AccountUsageState,
+  ProviderInfo,
+  LocalAccountInfo,
+} from '@/types'
 
 interface UsageStore {
   // State
@@ -11,6 +19,12 @@ interface UsageStore {
   lastFetchTime: number | null
   isInitialized: boolean
 
+  // Multi-account state
+  accounts: AccountConfig[]
+  accountUsage: Record<string, AccountUsageState>
+  providers: ProviderInfo[]
+  localAccounts: LocalAccountInfo[]
+
   // Actions
   setCurrentUsage: (usage: UsageData) => void
   addToHistory: (entry: UsageHistoryEntry) => void
@@ -19,6 +33,14 @@ interface UsageStore {
   setError: (error: string | null) => void
   clearHistory: () => void
   initializeFromStorage: (storedSettings: Settings) => void
+
+  // Multi-account actions
+  setAccounts: (accounts: AccountConfig[]) => void
+  addAccount: (account: AccountConfig) => Promise<void>
+  removeAccount: (id: string) => Promise<void>
+  setAccountUsage: (id: string, state: AccountUsageState) => void
+  setProviders: (providers: ProviderInfo[]) => void
+  setLocalAccounts: (local: LocalAccountInfo[]) => void
 }
 
 const defaultSettings: Settings = {
@@ -49,6 +71,10 @@ export const useUsageStore = create<UsageStore>((set, get) => ({
   error: null,
   lastFetchTime: null,
   isInitialized: false,
+  accounts: [],
+  accountUsage: {},
+  providers: [],
+  localAccounts: [],
 
   // Actions
   setCurrentUsage: (usage) => {
@@ -155,4 +181,38 @@ export const useUsageStore = create<UsageStore>((set, get) => ({
       })
     }
   },
+
+  // ---- Multi-account actions ----------------------------------------------
+
+  setAccounts: (accounts) => set({ accounts }),
+
+  addAccount: async (account) => {
+    const accounts = [...get().accounts.filter((a) => a.id !== account.id), account]
+    set({ accounts })
+    set((state) => ({ accountUsage: { ...state.accountUsage, [account.id]: { status: 'loading' } } }))
+    try {
+      await window.api.store.set('accounts', accounts)
+    } catch (error) {
+      console.error('Failed to persist accounts:', error)
+    }
+  },
+
+  removeAccount: async (id) => {
+    const accounts = get().accounts.filter((a) => a.id !== id)
+    const accountUsage = { ...get().accountUsage }
+    delete accountUsage[id]
+    set({ accounts, accountUsage })
+    try {
+      await window.api.store.set('accounts', accounts)
+    } catch (error) {
+      console.error('Failed to persist accounts:', error)
+    }
+  },
+
+  setAccountUsage: (id, state) =>
+    set((s) => ({ accountUsage: { ...s.accountUsage, [id]: state } })),
+
+  setProviders: (providers) => set({ providers }),
+
+  setLocalAccounts: (localAccounts) => set({ localAccounts }),
 }))

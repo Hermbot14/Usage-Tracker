@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react'
-import { UsageDisplay } from '@components/UsageDisplay'
+import { AccountsView } from '@components/AccountsView'
 import { SettingsPanel } from '@components/SettingsPanel'
 import { ThemeSelector } from '@components/ui/ThemeSelector'
 import { UsageOverlay } from '@components/UsageOverlay'
 import { useUsageStore } from '@stores/useUsageStore'
+import { useAccountsData } from '@hooks/useAccountsData'
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const { settings, updateSettings } = useUsageStore()
+
+  // Drive multi-account discovery + polling.
+  useAccountsData()
 
   // Check system preference for dark mode and load saved theme
   useEffect(() => {
@@ -116,7 +120,7 @@ function App() {
                 margin: 0,
                 marginTop: '2px'
               }}>
-                ZAI/GLM API Monitor
+                Coding-Plan Usage Monitor
               </p>
             </div>
           </div>
@@ -198,7 +202,7 @@ function App() {
         </header>
 
         {/* Main Content */}
-        <UsageDisplay />
+        <AccountsView onOpenSettings={() => setIsSettingsOpen(true)} />
 
         {/* Footer */}
         <footer style={{
