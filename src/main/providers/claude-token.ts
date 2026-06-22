@@ -20,7 +20,7 @@ const CRED_PATH = join(homedir(), '.claude', '.credentials.json')
 const TOKEN_ENDPOINT = 'https://console.anthropic.com/v1/oauth/token'
 const CLAUDE_CODE_CLIENT_ID = '9d1c250a-e61b-44d9-88ed-5944d1962f5e'
 /** Refresh if the token is expired or within this window of expiring. */
-const EXPIRY_SKEW_MS = 60_000
+const EXPIRY_SKEW_MS = 300_000 // 5 minutes — gives ample buffer for network + processing
 
 export interface ClaudeTokenResult {
   token: string | null

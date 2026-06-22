@@ -23,6 +23,13 @@ const api = {
       ipcRenderer.invoke('store-clear'),
     getAll: () =>
       ipcRenderer.invoke('store-getAll'),
+    // Encrypted secrets — stored via OS credential store (safeStorage)
+    setSecret: (key: string, value: string) =>
+      ipcRenderer.invoke('store-set-secret', key, value),
+    getSecret: (key: string) =>
+      ipcRenderer.invoke('store-get-secret', key),
+    deleteSecret: (key: string) =>
+      ipcRenderer.invoke('store-delete-secret', key),
   },
 
   // Notifications

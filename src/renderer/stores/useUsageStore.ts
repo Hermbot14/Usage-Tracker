@@ -113,14 +113,13 @@ export const useUsageStore = create<UsageStore>((set, get) => ({
         set({ history: [...filteredHistory, newEntry] })
       }
 
-      // Save to persistent storage with error handling
-      try {
-        window.api.store.set('currentUsage', usage)
-        window.api.store.set('lastFetchTime', Date.now())
-      } catch (storageError) {
-        console.error('Failed to save usage to storage:', storageError)
-        // Don't throw - storage errors shouldn't crash the app
-      }
+      // Fire-and-forget persistence — errors logged but never crash the UI
+      window.api.store.set('currentUsage', usage).catch((e) => {
+        console.error('Failed to save usage to storage:', e)
+      })
+      window.api.store.set('lastFetchTime', Date.now()).catch((e) => {
+        console.error('Failed to save fetch time to storage:', e)
+      })
     } catch (error) {
       console.error('Error in setCurrentUsage:', error)
       set({ error: error instanceof Error ? error.message : 'Unknown error' })
@@ -198,7 +197,12 @@ export const useUsageStore = create<UsageStore>((set, get) => ({
     set({ accounts })
     set((state) => ({ accountUsage: { ...state.accountUsage, [account.id]: { status: 'loading' } } }))
     try {
-      await window.api.store.set('accounts', accounts)
+      // Persist account metadata without apiKey; store the key encrypted separately
+      const metaOnly = accounts.map(({ apiKey: _k, ...meta }) => meta)
+      await window.api.store.set('accounts', metaOnly)
+      if (account.apiKey) {
+        await window.api.store.setSecret(`account-key-${account.id}`, account.apiKey)
+      }
     } catch (error) {
       console.error('Failed to persist accounts:', error)
     }
@@ -210,7 +214,9 @@ export const useUsageStore = create<UsageStore>((set, get) => ({
     delete accountUsage[id]
     set({ accounts, accountUsage })
     try {
-      await window.api.store.set('accounts', accounts)
+      const metaOnly = accounts.map(({ apiKey: _k, ...meta }) => meta)
+      await window.api.store.set('accounts', metaOnly)
+      await window.api.store.deleteSecret(`account-key-${id}`)
     } catch (error) {
       console.error('Failed to persist accounts:', error)
     }

@@ -107,7 +107,27 @@ export function useAccountsData() {
 
         const stored = (await window.api.store.get('accounts', null)) as AccountConfig[] | null
         if (stored && Array.isArray(stored)) {
-          setAccounts(stored)
+          // Restore encrypted API keys; also migrate any plaintext keys left from older
+          // versions of the app into the encrypted store, then strip them from disk.
+          let needsResave = false
+          const accountsWithKeys = await Promise.all(
+            stored.map(async (account) => {
+              if (account.apiKey) {
+                // Plaintext key still on disk — migrate it to the encrypted store
+                await window.api.store.setSecret(`account-key-${account.id}`, account.apiKey)
+                needsResave = true
+                return account
+              }
+              const apiKey = await window.api.store.getSecret(`account-key-${account.id}`)
+              return apiKey ? { ...account, apiKey } : account
+            })
+          )
+          setAccounts(accountsWithKeys)
+          if (needsResave) {
+            // Rewrite accounts file without plaintext keys
+            const metaOnly = accountsWithKeys.map(({ apiKey: _k, ...meta }) => meta)
+            await window.api.store.set('accounts', metaOnly)
+          }
         } else {
           // First run — seed from the legacy single-key setting + detected logins.
           const seeded: AccountConfig[] = []

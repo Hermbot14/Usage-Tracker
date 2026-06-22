@@ -112,6 +112,21 @@ export function registerIpcHandlers(
     return storeService.getAll()
   })
 
+  // Encrypted secret store — API keys never touch the plaintext JSON store
+  ipcMain.handle('store-set-secret', async (_event, key: string, value: string) => {
+    await storeService.setSecret(key, value)
+    return { success: true }
+  })
+
+  ipcMain.handle('store-get-secret', async (_event, key: string) => {
+    return storeService.getSecret(key)
+  })
+
+  ipcMain.handle('store-delete-secret', async (_event, key: string) => {
+    await storeService.deleteSecret(key)
+    return { success: true }
+  })
+
   // Show notification
   ipcMain.handle('show-notification', async (_event, title: string, body: string) => {
     if (trayManager) {

@@ -29,6 +29,9 @@ declare global {
         delete: (key: string) => Promise<{ success: boolean }>
         clear: () => Promise<{ success: boolean }>
         getAll: () => Promise<any>
+        setSecret: (key: string, value: string) => Promise<{ success: boolean }>
+        getSecret: (key: string) => Promise<string | null>
+        deleteSecret: (key: string) => Promise<{ success: boolean }>
       }
       showNotification: (title: string, body: string) => Promise<{ success: boolean }>
       updateTray: (usage: any) => Promise<{ success: boolean }>
