@@ -4,6 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Usage Tracker</title>
+    <!--
+      Synchronous theme preloader — runs before React mounts, before CSS parses.
+      Sets the correct dark class, data-theme, and background color on <html>
+      immediately, so there is zero FOUC and no resize flash.
+    -->
+    <script>
+      (function () {
+        var stored = localStorage.getItem('usage-tracker-dark')
+        var dark =
+          stored === 'true' ||
+          (stored === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        var theme = localStorage.getItem('usage-tracker-theme') || 'default'
+
+        if (dark) document.documentElement.classList.add('dark')
+        if (theme && theme !== 'default')
+          document.documentElement.setAttribute('data-theme', theme)
+
+        // Background colour lookup — must stay in sync with index.css theme values.
+        // [light, dark] for each theme.
+        var BG = {
+          default: ['#F2F2ED', '#0B0B0F'],
+          dusk:    ['#F5F5F0', '#131419'],
+          lime:    ['#E8F5A3', '#0F0F1A'],
+          ocean:   ['#E0F2FE', '#082F49'],
+          retro:   ['#FEF3C7', '#1C1917'],
+          neo:     ['#FDF4FF', '#0F0720'],
+          forest:  ['#DCFCE7', '#052E16'],
+        }
+        var pair = BG[theme] || BG['default']
+        document.documentElement.style.backgroundColor = dark ? pair[1] : pair[0]
+
+        // Suppress transitions on the very first paint so the initial background
+        // renders without a 300ms fade from the wrong colour.
+        document.documentElement.classList.add('no-transition')
+      })()
+    </script>
+    <style>
+      html, body, #root { height: 100%; margin: 0; padding: 0; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

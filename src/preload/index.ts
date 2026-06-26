@@ -46,6 +46,10 @@ const api = {
   getAppVersion: () =>
     ipcRenderer.invoke('get-app-version'),
 
+  // Sync window background colour with current CSS theme (prevents resize flash)
+  setWindowBackground: (color: string) =>
+    ipcRenderer.invoke('set-window-background', color),
+
   // Overlay mode operations
   setOverlayMode: (enabled: boolean) =>
     ipcRenderer.invoke('set-overlay-mode', enabled),

@@ -151,6 +151,23 @@ export function registerIpcHandlers(
     return app.getVersion()
   })
 
+  // Sync BrowserWindow background colour with the current CSS theme.
+  // Called whenever the user toggles dark mode or switches theme so that
+  // newly-revealed pixels during resize match the page background exactly.
+  ipcMain.handle('set-window-background', async (_event, color: string) => {
+    try {
+      const window = BrowserWindow.fromWebContents(_event.sender)
+      if (window && !window.isDestroyed()) {
+        window.setBackgroundColor(color)
+      }
+      await storeService.set('windowBackgroundColor', color)
+      return { success: true }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to set background color'
+      return { success: false, error: message }
+    }
+  })
+
   // Minimize to tray
   ipcMain.handle('minimize-to-tray', async (_event) => {
     const window = BrowserWindow.fromWebContents(_event.sender)

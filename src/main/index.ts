@@ -127,6 +127,11 @@ function createWindow(overlayMode: boolean = false): void {
       height: savedBounds?.height || 700,
     })
 
+    // Read the last-persisted background colour so the window paint matches the
+    // CSS theme from the very first pixel — prevents black/white gaps on resize.
+    const storedBg = storeService?.get('windowBackgroundColor', '#F2F2ED')
+    const backgroundColor = typeof storedBg === 'string' ? storedBg : '#F2F2ED'
+
     mainWindow = new BrowserWindow({
       width: normalBounds.width,
       height: normalBounds.height,
@@ -137,7 +142,7 @@ function createWindow(overlayMode: boolean = false): void {
       show: false,
       autoHideMenuBar: true,
       resizable: true,
-      backgroundColor: '#f9fafb',
+      backgroundColor,
       title: 'Usage Tracker',
       webPreferences: {
         preload: join(__dirname, '../preload/index.cjs'),

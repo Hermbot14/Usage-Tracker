@@ -37,6 +37,7 @@ declare global {
       updateTray: (usage: any) => Promise<{ success: boolean }>
       minimizeToTray: () => Promise<{ success: boolean }>
       getAppVersion: () => Promise<string>
+      setWindowBackground: (color: string) => Promise<{ success: boolean }>
       setOverlayMode: (enabled: boolean) => Promise<{ success: boolean }>
       setClickThrough: (enabled: boolean) => Promise<{ success: boolean }>
       setOverlayPosition: (position: string) => Promise<{ success: boolean }>

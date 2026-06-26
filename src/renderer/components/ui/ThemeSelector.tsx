@@ -10,6 +10,17 @@ const THEMES = [
   { id: 'forest', name: 'Forest', colors: { primary: '#16A34A', bg: '#DCFCE7' } }
 ]
 
+// Dark backgrounds keyed by theme id — mirrors the lookup in App.tsx and index.html.
+const DARK_BG: Record<string, string> = {
+  default: '#0B0B0F',
+  dusk:    '#131419',
+  lime:    '#0F0F1A',
+  ocean:   '#082F49',
+  retro:   '#1C1917',
+  neo:     '#0F0720',
+  forest:  '#052E16',
+}
+
 export function ThemeSelector() {
   const [isOpen, setIsOpen] = useState(false)
   const [currentTheme, setCurrentTheme] = useState('default')
@@ -45,6 +56,9 @@ export function ThemeSelector() {
     localStorage.setItem('usage-tracker-theme', theme)
     applyTheme(theme, isDark)
     setIsOpen(false)
+    // Keep BrowserWindow background in sync to prevent resize gaps.
+    const bg = isDark ? (DARK_BG[theme] ?? DARK_BG.default) : (THEMES.find(t => t.id === theme)?.colors.bg ?? '#F2F2ED')
+    window.api.setWindowBackground(bg)
   }
 
   const handleDarkModeToggle = () => {
@@ -52,6 +66,9 @@ export function ThemeSelector() {
     setIsDark(newDark)
     localStorage.setItem('usage-tracker-dark', String(newDark))
     applyTheme(currentTheme, newDark)
+    // Keep BrowserWindow background in sync to prevent resize gaps.
+    const bg = newDark ? (DARK_BG[currentTheme] ?? DARK_BG.default) : (THEMES.find(t => t.id === currentTheme)?.colors.bg ?? '#F2F2ED')
+    window.api.setWindowBackground(bg)
   }
 
   // Handle keyboard navigation

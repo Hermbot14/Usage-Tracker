@@ -530,14 +530,29 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Ensure <html> itself is always filled — prevents Electron from showing
+       the BrowserWindow backgroundColor through any unpainted gap. */
+    background-color: var(--color-background-primary);
+    height: 100%;
   }
 
   body {
     margin: 0;
+    height: 100%;
     font-family: var(--font-sans);
     color: var(--color-text-primary);
     background-color: var(--color-background-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  /* Suppress ALL transitions on the very first paint (class injected by the
+     preloader script in index.html and removed after two animation frames). */
+  .no-transition * {
+    transition: none !important;
   }
 
   /* Focus-visible for keyboard navigation */

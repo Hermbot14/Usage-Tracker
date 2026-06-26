@@ -6,6 +6,23 @@ import { UsageOverlay } from '@components/UsageOverlay'
 import { useUsageStore } from '@stores/useUsageStore'
 import { useAccountsData } from '@hooks/useAccountsData'
 
+// Background colours keyed by [theme][dark ? 1 : 0] — must stay in sync with
+// index.css and the preloader script in index.html.
+const THEME_BG: Record<string, [string, string]> = {
+  default: ['#F2F2ED', '#0B0B0F'],
+  dusk:    ['#F5F5F0', '#131419'],
+  lime:    ['#E8F5A3', '#0F0F1A'],
+  ocean:   ['#E0F2FE', '#082F49'],
+  retro:   ['#FEF3C7', '#1C1917'],
+  neo:     ['#FDF4FF', '#0F0720'],
+  forest:  ['#DCFCE7', '#052E16'],
+}
+
+function getThemeBg(theme: string, dark: boolean): string {
+  const pair = THEME_BG[theme] ?? THEME_BG.default
+  return dark ? pair[1] : pair[0]
+}
+
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -14,32 +31,49 @@ function App() {
   // Drive multi-account discovery + polling.
   useAccountsData()
 
-  // Check system preference for dark mode and load saved theme
+  // Check system preference for dark mode and load saved theme.
+  // The preloader in index.html has already applied classes synchronously;
+  // this effect syncs React state and registers the system-preference listener.
   useEffect(() => {
-    const savedDark = localStorage.getItem('usage-tracker-dark') === 'true'
+    const savedDark = localStorage.getItem('usage-tracker-dark')
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const dark = savedDark || prefersDark
+    const dark = savedDark === 'true' || (savedDark === null && prefersDark)
     setIsDarkMode(dark)
 
     if (dark) {
       document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
     }
 
-    const savedTheme = localStorage.getItem('usage-tracker-theme')
+    const savedTheme = localStorage.getItem('usage-tracker-theme') || 'default'
     if (savedTheme && savedTheme !== 'default') {
       document.documentElement.setAttribute('data-theme', savedTheme)
     }
 
+    // Sync BrowserWindow background so resize gaps match the CSS background.
+    window.api.setWindowBackground(getThemeBg(savedTheme, dark))
+
+    // Re-enable transitions after the first paint so subsequent theme changes
+    // animate smoothly (the preloader disabled them to prevent FOUC).
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.documentElement.classList.remove('no-transition')
+      })
+    })
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('usage-tracker-dark')) {
+      if (localStorage.getItem('usage-tracker-dark') === null) {
         const newDark = e.matches
+        const theme = localStorage.getItem('usage-tracker-theme') || 'default'
         setIsDarkMode(newDark)
         if (newDark) {
           document.documentElement.classList.add('dark')
         } else {
           document.documentElement.classList.remove('dark')
         }
+        window.api.setWindowBackground(getThemeBg(theme, newDark))
       }
     }
 
@@ -49,6 +83,7 @@ function App() {
 
   const toggleDarkMode = () => {
     const newDark = !isDarkMode
+    const theme = localStorage.getItem('usage-tracker-theme') || 'default'
     setIsDarkMode(newDark)
     localStorage.setItem('usage-tracker-dark', String(newDark))
     if (newDark) {
@@ -56,6 +91,8 @@ function App() {
     } else {
       document.documentElement.classList.remove('dark')
     }
+    // Keep the native window fill in sync so resize reveals no gaps.
+    window.api.setWindowBackground(getThemeBg(theme, newDark))
   }
 
   // Handler to expand from overlay mode back to the full desktop window.
