@@ -144,16 +144,11 @@ export function AccountCard({ account, state, provider, onRemove }: AccountCardP
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <ProviderIcon provider={account.provider} />
             <div style={{ minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {account.name}
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-                {provider && (
-                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: 0.4, color: 'var(--color-text-tertiary)' }}>
-                    {authChip[provider.auth] ?? provider.auth.toUpperCase()}
-                  </span>
-                )}
-                <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>·</span>
+              {/* Name + plan badge — the plan is the visual anchor of this row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {account.name}
+                </p>
                 {editingPlan ? (
                   <input
                     ref={planInputRef}
@@ -163,31 +158,61 @@ export function AccountCard({ account, state, provider, onRemove }: AccountCardP
                     onKeyDown={(e) => { if (e.key === 'Enter') commitPlan(); if (e.key === 'Escape') setEditingPlan(false) }}
                     placeholder="e.g. Max 20x"
                     style={{
-                      fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
-                      width: 80, padding: '1px 5px', border: '1px solid var(--color-accent-primary)',
-                      borderRadius: 'var(--radius-full)', outline: 'none',
+                      fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
+                      width: 88, padding: '2px 7px', border: '1px solid var(--color-accent-primary)',
+                      borderRadius: 'var(--radius-full)', outline: 'none', flexShrink: 0,
                       backgroundColor: 'var(--color-surface-card)', color: 'var(--color-accent-primary)',
                     }}
                   />
+                ) : displayPlan ? (
+                  <span
+                    onClick={() => setEditingPlan(true)}
+                    title="Click to edit plan"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      fontSize: 10, fontWeight: 800, letterSpacing: 0.6, textTransform: 'uppercase',
+                      color: 'var(--color-text-inverse)',
+                      background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-primary-hover))',
+                      padding: '2px 8px', borderRadius: 'var(--radius-full)',
+                      boxShadow: 'var(--shadow-sm)', cursor: 'pointer', userSelect: 'none',
+                      whiteSpace: 'nowrap', flexShrink: 0,
+                    }}
+                  >
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.9 }}>
+                      <path d="M5 16L3 6l5.5 4L12 4l3.5 6L21 6l-2 10H5zm0 2h14v2H5v-2z" />
+                    </svg>
+                    {displayPlan}
+                  </span>
                 ) : (
                   <span
                     onClick={() => setEditingPlan(true)}
-                    title={displayPlan ? 'Click to edit plan' : 'Click to set plan'}
+                    title="Click to set plan"
                     style={{
-                      fontSize: 10, fontWeight: displayPlan ? 700 : 400, letterSpacing: 0.5,
-                      color: displayPlan ? 'var(--color-accent-primary)' : 'var(--color-text-tertiary)',
-                      backgroundColor: displayPlan ? 'color-mix(in srgb, var(--color-accent-primary) 12%, transparent)' : 'transparent',
-                      padding: '1px 6px', borderRadius: 'var(--radius-full)',
-                      cursor: 'pointer', userSelect: 'none',
+                      fontSize: 10, fontWeight: 500, letterSpacing: 0.3,
+                      color: 'var(--color-text-tertiary)',
+                      border: '1px dashed var(--color-border-default)',
+                      padding: '1px 7px', borderRadius: 'var(--radius-full)',
+                      cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap', flexShrink: 0,
                     }}
                   >
-                    {displayPlan ?? '+ plan'}
+                    + plan
+                  </span>
+                )}
+              </div>
+              {/* Auth method + account email */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, minWidth: 0 }}>
+                {provider && (
+                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: 0.4, color: 'var(--color-text-tertiary)', flexShrink: 0 }}>
+                    {authChip[provider.auth] ?? provider.auth.toUpperCase()}
                   </span>
                 )}
                 {state?.status === 'ok' && state.usage.email && (
-                  <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    · {state.usage.email}
-                  </span>
+                  <>
+                    <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', flexShrink: 0 }}>·</span>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {state.usage.email}
+                    </span>
+                  </>
                 )}
               </div>
             </div>

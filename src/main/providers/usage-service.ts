@@ -12,7 +12,7 @@ import type { UsageData } from '../../renderer/types'
 import type { FetchUsageResult, NormalizedUsage, ProviderId } from './types'
 import { getProvider, getUsageEndpoint } from './registry'
 import { readLocalCredential } from './credentials'
-import { getFreshClaudeToken } from './claude-token'
+import { getFreshClaudeToken, getClaudePlan } from './claude-token'
 import { normalizeAnthropic, normalizeCodex, normalizeZai } from './normalizers'
 
 const REQUEST_TIMEOUT_MS = 12_000
@@ -183,6 +183,12 @@ export async function fetchAccountUsage(account: UsageAccount): Promise<FetchUsa
     const usage = normalize(account.provider, json)
     // Prefer the email the local credential gave us if the API didn't return one.
     if (!usage.email && cred.email) usage.email = cred.email
+    // For Claude, read the plan straight from the credentials file — authoritative
+    // (encodes the 5x/20x multiplier), overriding the limits-array inference.
+    if (account.provider === 'anthropic') {
+      const plan = getClaudePlan()
+      if (plan) usage.planLabel = plan
+    }
     lastGood.set(account.id, usage)
     cooldownUntil.delete(account.id)
     return { ok: true, usage }

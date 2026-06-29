@@ -34,6 +34,10 @@ interface ClaudeOAuth {
   expiresAt?: number
   email?: string
   emailAddress?: string
+  /** "max" | "pro" | "free" | "team" | "enterprise" — base subscription tier. */
+  subscriptionType?: string
+  /** e.g. "default_claude_max_20x" — encodes the multiplier (5x / 20x). */
+  rateLimitTier?: string
 }
 interface ClaudeCredFile {
   claudeAiOauth?: ClaudeOAuth
@@ -56,6 +60,41 @@ function readCredFile(): ClaudeCredFile | null {
 
 function emailOf(o: ClaudeOAuth | undefined): string | null {
   return o?.email ?? o?.emailAddress ?? null
+}
+
+/**
+ * Read the Claude subscription plan straight from the credentials file.
+ *
+ * This is authoritative — far more reliable than inferring from the usage
+ * endpoint's `limits` array. `rateLimitTier` encodes the multiplier
+ * (e.g. "default_claude_max_20x" → "Max 20x"); `subscriptionType` is the
+ * base tier fallback ("max" → "Max").
+ */
+export function getClaudePlan(): string | undefined {
+  const o = readCredFile()?.claudeAiOauth
+  if (!o) return undefined
+
+  const tier = typeof o.rateLimitTier === 'string' ? o.rateLimitTier.toLowerCase() : ''
+  if (tier) {
+    if (/20\s*x/.test(tier)) return 'Max 20x'
+    if (/5\s*x/.test(tier)) return 'Max 5x'
+    if (tier.includes('max')) return 'Max'
+    if (tier.includes('pro')) return 'Pro'
+    if (tier.includes('team')) return 'Team'
+    if (tier.includes('enterprise')) return 'Enterprise'
+    if (tier.includes('free')) return 'Free'
+  }
+
+  const sub = typeof o.subscriptionType === 'string' ? o.subscriptionType.toLowerCase() : ''
+  if (sub) {
+    if (sub.includes('max')) return 'Max'
+    if (sub.includes('pro')) return 'Pro'
+    if (sub.includes('team')) return 'Team'
+    if (sub.includes('enterprise')) return 'Enterprise'
+    if (sub.includes('free')) return 'Free'
+    return sub.charAt(0).toUpperCase() + sub.slice(1)
+  }
+  return undefined
 }
 
 /** Atomically persist refreshed tokens, preserving all other fields. */
