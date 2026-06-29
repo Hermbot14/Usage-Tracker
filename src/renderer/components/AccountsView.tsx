@@ -32,12 +32,14 @@ export function AccountsView({ onOpenSettings }: AccountsViewProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(12px, 1.5vw, 18px)' }}>
       <StatusSummary />
-      {/* Responsive grid: 1 column when narrow, flowing to 2–3 as the window widens.
-          min(100%, 340px) keeps a single card from overflowing very narrow windows. */}
+      {/* Responsive grid: auto-fit (not auto-fill) so a single card expands to
+          fill the row instead of being parked in a narrow 340px track on the
+          left; multiple cards flow into 2–3 columns as the window widens.
+          min(100%, 340px) keeps a single card from overflowing narrow windows. */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
           gap: 'clamp(12px, 1.5vw, 18px)',
           alignItems: 'start',
         }}
